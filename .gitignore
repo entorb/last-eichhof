@@ -1,0 +1,16 @@
+!.vscode/extensions.json
+*.local
+*.njsproj
+*.ntvs*
+*.sln
+*.suo
+*.sw?
+.DS_Store
+.vscode/*
+/dist/
+/node_modules/
+/public/assets/sounds/hs.ogg
+/public/assets/sounds/title.ogg
+/src/dist/
+/tmp/
+cspell-words-missing.txt
