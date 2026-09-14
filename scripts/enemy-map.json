@@ -1,0 +1,18 @@
+{
+  "scale": 3,
+  "extras": [
+    { "key": "ship", "level": "WEAPONS", "sprite": 0 },
+    { "key": "explosion", "level": 1, "sprite": 10 }
+  ],
+  "weaponSprites": {
+    "lager": 0,
+    "pony": 1,
+    "barbara": 2,
+    "dunkel": 3,
+    "stange": 4,
+    "pokal": 5,
+    "can33": 6,
+    "chuebeli": 7,
+    "kanone": 8
+  }
+}
