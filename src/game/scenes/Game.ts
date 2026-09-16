@@ -41,7 +41,12 @@ import {
   type Weapon,
 } from "../data/weapons";
 import * as Flow from "../flow";
-import { moveVector, resolveTouchControls } from "../input/controls";
+import {
+  moveVector,
+  resolveTouchControls,
+  stickFromForce,
+} from "../input/controls";
+import { EdgeStick } from "../input/edgeStick";
 
 const SHIELD_MS = 2500;
 const LOSE_MS = 1200;
@@ -153,6 +158,7 @@ export class Game extends Scene {
   private joyRing: GameObjects.Arc | null = null;
   private joyThumb: GameObjects.Arc | null = null;
   private pauseButton: GameObjects.Text | null = null;
+  private edgeStick: EdgeStick | null = null;
 
   constructor() {
     super("Game");
@@ -227,6 +233,19 @@ export class Game extends Scene {
       .setDepth(150)
       .setVisible(this.oneHitKill);
 
+    // Top-left MENU button, available in keyboard and touch mode alike.
+    this.pauseButton = this.add
+      .text(16, HUD_H + 8, "MENU", {
+        fontFamily: "monospace",
+        fontSize: "22px",
+        color: "#9fe0ff",
+        backgroundColor: "rgba(20,28,44,0.6)",
+      })
+      .setPadding(10, 4, 10, 4)
+      .setDepth(300)
+      .setInteractive({ useHandCursor: true });
+    this.pauseButton.on("pointerdown", () => this.togglePause());
+
     this.message = this.add
       .text(PLAY.w / 2, PLAY.h / 2, "", {
         fontFamily: "monospace",
@@ -240,7 +259,7 @@ export class Game extends Scene {
     let hintText: string;
     if (this.touch) {
       hintText =
-        "DRAG            MOVE\nAUTO            FIRE\nII / ESC        MENU";
+        "DRAG            MOVE\nAUTO            FIRE\nMENU / ESC      PAUSE";
     } else if (this.autoFire) {
       hintText =
         "ARROWS / WASD   MOVE\nAUTO            FIRE\nESC             MENU";
@@ -350,23 +369,17 @@ export class Game extends Scene {
     );
     this.joystick.setVisible(false);
 
-    this.pauseButton = this.add
-      .text(16, HUD_H + 10, "II", {
-        fontFamily: "monospace",
-        fontSize: "28px",
-        color: "#9fe0ff",
-        backgroundColor: "rgba(20,28,44,0.6)",
-      })
-      .setPadding(10, 2, 10, 6)
-      .setDepth(300)
-      .setInteractive({ useHandCursor: true });
-    this.pauseButton.on("pointerdown", () => this.togglePause());
-
     this.input.on("pointerup", () => {
       ring.setAlpha(0);
       thumb.setAlpha(0);
     });
     this.input.on("pointerdown", () => {
+      if (this.state === "gameover") Flow.endGame(this.scene);
+    });
+
+    // Blank area beside the letterbox canvas also steers, and a tap there
+    // continues after game over.
+    this.edgeStick = new EdgeStick(this, () => {
       if (this.state === "gameover") Flow.endGame(this.scene);
     });
   }
@@ -514,16 +527,9 @@ export class Game extends Scene {
   }
 
   private moveShip(dt: number) {
-    let stick = { x: 0, y: 0 };
-    if (this.joystick) {
-      const jx = clamp(this.joystick.forceX / JOY_RADIUS, -1, 1);
-      const jy = clamp(this.joystick.forceY / JOY_RADIUS, -1, 1);
-      const threshold = 0.25;
-      stick = {
-        x: Math.abs(jx) > threshold ? Math.sign(jx) : 0,
-        y: Math.abs(jy) > threshold ? Math.sign(jy) : 0,
-      };
-    }
+    const fx = (this.joystick?.forceX ?? 0) + (this.edgeStick?.forceX ?? 0);
+    const fy = (this.joystick?.forceY ?? 0) + (this.edgeStick?.forceY ?? 0);
+    const stick = stickFromForce(fx, fy, JOY_RADIUS);
     const { x: vx, y: vy } = moveVector(
       {
         left: this.cursors.left.isDown || this.keyA.isDown,

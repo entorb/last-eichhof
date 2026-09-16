@@ -4,6 +4,7 @@ import {
   moveVector,
   resolveTouchControls,
   runControlsSelfCheck,
+  stickFromForce,
 } from "./controls";
 
 const none: MoveKeys = {
@@ -43,6 +44,17 @@ describe("moveVector", () => {
   it("clamps combined keyboard + stick to unit length", () => {
     const v = moveVector({ ...none, right: true }, { x: 1, y: 0 });
     expect(Math.hypot(v.x, v.y)).toBeCloseTo(1);
+  });
+});
+
+describe("stickFromForce", () => {
+  it("ignores drags inside the dead zone", () => {
+    expect(stickFromForce(10, 0, 90)).toEqual({ x: 0, y: 0 });
+  });
+
+  it("snaps past the dead zone and clamps at full tilt", () => {
+    expect(stickFromForce(90, -90, 90)).toEqual({ x: 1, y: -1 });
+    expect(stickFromForce(1000, 0, 90)).toEqual({ x: 1, y: 0 });
   });
 });
 

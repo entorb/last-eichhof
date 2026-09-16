@@ -85,8 +85,12 @@ export function nextStep(step: number): number {
   return (step + 1) % STEPS;
 }
 
+export type MusicScene = "menu" | "game" | "scores" | "shop";
+
 export class Music {
   private pattern: Pattern | null = null;
+  private scene: MusicScene = "menu";
+  private enabled = true;
   private step = 0;
   private nextTime = 0;
   private timer: number | null = null;
@@ -96,10 +100,23 @@ export class Music {
     private readonly samples: Samples,
   ) {}
 
+  // Music off silences the synth patterns; SFX (Synth one-shots, Samples) stay.
+  setEnabled(enabled: boolean): void {
+    if (this.enabled === enabled) return;
+    this.enabled = enabled;
+    if (enabled) this.setScene(this.scene);
+    else this.stop();
+  }
+
   // Menu/scores/game music is synthesized; the original TITLE/HS samples are
   // copyright-protected and intentionally not shipped.
-  setScene(scene: "menu" | "game" | "scores" | "shop"): void {
+  setScene(scene: MusicScene): void {
+    this.scene = scene;
     this.samples.stopTrack();
+    if (!this.enabled) {
+      this.stopSynth();
+      return;
+    }
     if (scene === "shop") {
       // Shop drives its own buy/sell sample loop; silence the game pattern.
       this.stopSynth();
