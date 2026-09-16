@@ -14,6 +14,7 @@ export interface Settings {
   graphics: GraphicsMode;
   controls: ControlsMode;
   autoFire: boolean;
+  music: boolean;
 }
 
 export const DIFFICULTY: Record<
@@ -34,8 +35,7 @@ export const GRAPHICS: Record<GraphicsMode, { label: string }> = {
 
 export const GRAPHICS_ORDER: GraphicsMode[] = ["modern", "retro"];
 
-export const MAX_RESULTS = 50;
-export const TOP_N = 10;
+export type ResultSort = "points" | "date";
 
 const RESULTS_KEY = "eichhof.results";
 const SETTINGS_KEY = "eichhof.settings";
@@ -45,6 +45,7 @@ export const DEFAULT_SETTINGS: Settings = {
   graphics: "retro",
   controls: "auto",
   autoFire: false,
+  music: true,
 };
 
 function isResult(v: unknown): v is GameResult {
@@ -70,20 +71,27 @@ export function parseResults(raw: string | null): GameResult[] {
     return [];
   }
   if (!Array.isArray(data)) return [];
-  return data.filter(isResult).slice(0, MAX_RESULTS);
+  return data.filter(isResult);
 }
 
 export function addResult(
   results: GameResult[],
   result: GameResult,
 ): GameResult[] {
-  return [result, ...results].slice(0, MAX_RESULTS);
+  return [result, ...results];
 }
 
-export function topScores(results: GameResult[], n = TOP_N): GameResult[] {
-  return [...results]
-    .sort((a, b) => b.score - a.score || a.at - b.at)
-    .slice(0, n);
+// "points" ranks every game ever played by score (ties to the older run);
+// "date" is newest first. The scores screen shows the whole list.
+export function sortResults(
+  results: GameResult[],
+  sort: ResultSort,
+): GameResult[] {
+  return [...results].sort(
+    sort === "points"
+      ? (a, b) => b.score - a.score || a.at - b.at
+      : (a, b) => b.at - a.at,
+  );
 }
 
 export function clampScroll(
@@ -124,7 +132,9 @@ export function parseSettings(raw: string | null): Settings {
     typeof obj.autoFire === "boolean"
       ? obj.autoFire
       : DEFAULT_SETTINGS.autoFire;
-  return { difficulty, graphics, controls, autoFire };
+  const music =
+    typeof obj.music === "boolean" ? obj.music : DEFAULT_SETTINGS.music;
+  return { difficulty, graphics, controls, autoFire, music };
 }
 
 function safeGet(key: string): string | null {
@@ -181,13 +191,21 @@ export function runStoreSelfCheck(): void {
   assert(list.length === 3, "addResult size");
   assert(list[0] === c, "newest first");
 
-  const top = topScores(list, 2);
-  assert(top.length === 2, "topScores cap");
-  assert(top[0].score === 30 && top[1].score === 20, "topScores order");
+  const byPoints = sortResults(list, "points");
+  assert(
+    byPoints[0].score === 30 && byPoints[1].score === 20,
+    "points sort order",
+  );
+  assert(byPoints.length === 3, "points sort keeps all results");
+  const byDate = sortResults(list, "date");
+  assert(byDate[0] === c && byDate[2] === a, "date sort newest first");
 
   const tie1: GameResult = { score: 20, level: 1, won: false, at: 9 };
   const tie2: GameResult = { score: 20, level: 1, won: false, at: 4 };
-  assert(topScores([tie1, tie2], 1)[0] === tie2, "tie breaks to older result");
+  assert(
+    sortResults([tie1, tie2], "points")[0] === tie2,
+    "tie breaks to older result",
+  );
 
   assert(clampScroll(0, 0, 10) === 0, "scroll empty");
   assert(clampScroll(5, 3, 10) === 0, "scroll clamps high");
@@ -195,13 +213,13 @@ export function runStoreSelfCheck(): void {
   assert(clampScroll(100, 50, 10) === 40, "scroll clamps to max");
   assert(clampScroll(3, 50, 10) === 3, "scroll keeps in range");
 
-  const many = Array.from({ length: MAX_RESULTS + 5 }, (_, i) => ({
+  const many = Array.from({ length: 120 }, (_, i) => ({
     score: i,
     level: 1,
     won: false,
     at: i,
   }));
-  assert(addResult(many, a).length === MAX_RESULTS, "results capped");
+  assert(addResult(many, a).length === 121, "results not capped");
 
   assert(parseSettings(null).difficulty === "normal", "default settings");
   assert(parseSettings("garbage").difficulty === "normal", "bad settings");
@@ -248,5 +266,14 @@ export function runStoreSelfCheck(): void {
   assert(
     parseSettings(JSON.stringify({ autoFire: "yes" })).autoFire === false,
     "invalid auto-fire",
+  );
+  assert(parseSettings(null).music === true, "music defaults on");
+  assert(
+    parseSettings(JSON.stringify({ music: false })).music === false,
+    "valid music",
+  );
+  assert(
+    parseSettings(JSON.stringify({ music: "yes" })).music === true,
+    "invalid music",
   );
 }

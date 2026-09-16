@@ -12,7 +12,6 @@ export interface SceneSwitcher {
   pause(scene: SceneName): void;
   stop(scene: SceneName): void;
   bringToTop(scene: SceneName): void;
-  restart(data?: object): void;
 }
 
 /** Menu → START GAME: fresh run, then Game. */
@@ -34,14 +33,14 @@ export function resumeGame(switcher: SceneSwitcher): void {
   switcher.stop("Menu");
 }
 
-/** Pause Menu QUIT: record/abandon the run, Game stops, Menu restarts fresh. */
-export function quitToMenu(
+/** Pause Menu END GAME: record the run, stop Game, open Menu on the scores. */
+export function endGameAndShowScores(
   switcher: SceneSwitcher,
   game: { abortGame(): void },
 ): void {
   game.abortGame();
   switcher.stop("Game");
-  switcher.restart({ pause: false });
+  switcher.start("Menu", { pause: false, scores: true });
 }
 
 /** Game level cleared: Shop between levels, Menu (run over) after the last. */

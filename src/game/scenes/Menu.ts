@@ -11,9 +11,9 @@ import {
   type GraphicsMode,
   loadResults,
   loadSettings,
+  type ResultSort,
   saveSettings,
-  TOP_N,
-  topScores,
+  sortResults,
 } from "../data/store";
 import * as Flow from "../flow";
 import { resolveTouchControls } from "../input/controls";
@@ -46,6 +46,10 @@ function fmtScore(score: number): string {
   return String(score).padStart(7, " ");
 }
 
+function sortLabel(sort: ResultSort): string {
+  return sort === "points" ? "BY POINTS" : "BY DATE";
+}
+
 export class Menu extends Scene {
   private starsFar!: GameObjects.TileSprite;
   private starsNear!: GameObjects.TileSprite;
@@ -62,12 +66,13 @@ export class Menu extends Scene {
 
   private mode: Mode = "menu";
   private pauseMode = false;
+  private startScores = false;
   private select = 0;
   private items: { text: GameObjects.Text; def: Item }[] = [];
   private dynamic: GameObjects.GameObject[] = [];
-  private scoresTab: "top" | "history" = "top";
+  private scoresSort: ResultSort = "points";
   private historyScroll = 0;
-  private scoreTabs: { text: GameObjects.Text; tab: "top" | "history" }[] = [];
+  private scoreTabs: { text: GameObjects.Text; sort: ResultSort }[] = [];
   private scoreList: GameObjects.Text | null = null;
   private scoreFoot: GameObjects.Text | null = null;
   private globalGames: number | null = null;
@@ -80,8 +85,9 @@ export class Menu extends Scene {
     super("Menu");
   }
 
-  init(data?: { pause?: boolean }) {
+  init(data?: { pause?: boolean; scores?: boolean }) {
     this.pauseMode = data?.pause === true;
+    this.startScores = data?.scores === true;
   }
 
   create() {
@@ -133,10 +139,13 @@ export class Menu extends Scene {
       this.scale.off(Scale.Events.LEAVE_FULLSCREEN, syncFs);
     });
 
-    this.mode = this.pauseMode ? "pause" : "menu";
+    if (this.startScores) this.mode = "scores";
+    else this.mode = this.pauseMode ? "pause" : "menu";
     this.select = 0;
     this.rebuild();
-    if (!this.pauseMode) {
+    if (this.startScores) {
+      getMusic().setScene("scores");
+    } else if (!this.pauseMode) {
       getMusic().setScene("menu");
       getSamples().play("menu");
     }
@@ -244,7 +253,7 @@ export class Menu extends Scene {
           activate: () => this.cycleDifficulty(1),
           cycle: (dir) => this.cycleDifficulty(dir),
         },
-        { label: () => "TOP 10", activate: () => this.goto("scores") },
+        { label: () => "SCORES", activate: () => this.goto("scores") },
         { label: () => "OPTIONS", activate: () => this.goto("options") },
       ];
       if (fullscreenEntry) defs.splice(2, 0, fullscreenEntry);
@@ -272,6 +281,11 @@ export class Menu extends Scene {
           cycle: () => this.toggleAutoFire(),
         },
         {
+          label: () => `MUSIC: ${loadSettings().music ? "ON" : "OFF"}`,
+          activate: () => this.toggleMusic(),
+          cycle: () => this.toggleMusic(),
+        },
+        {
           label: () => "BACK",
           activate: () => this.goto("menu"),
         },
@@ -279,25 +293,17 @@ export class Menu extends Scene {
       this.addItems(defs, 320);
     } else if (this.mode === "pause") {
       this.addStatic(480, 220, "PAUSED", 34, WHITE).setOrigin(0.5);
-      this.addItems(
-        fullscreenEntry
-          ? [
-              { label: () => "RESUME", activate: () => this.resumeGame() },
-              {
-                label: () => "QUIT TO MENU",
-                activate: () => this.quitToMenu(),
-              },
-              fullscreenEntry,
-            ]
-          : [
-              { label: () => "RESUME", activate: () => this.resumeGame() },
-              {
-                label: () => "QUIT TO MENU",
-                activate: () => this.quitToMenu(),
-              },
-            ],
-        340,
-      );
+      const defs: Item[] = [
+        { label: () => "RESUME", activate: () => this.resumeGame() },
+        {
+          label: () => `MUSIC: ${loadSettings().music ? "ON" : "OFF"}`,
+          activate: () => this.toggleMusic(),
+          cycle: () => this.toggleMusic(),
+        },
+        { label: () => "END GAME", activate: () => this.endGame() },
+      ];
+      if (fullscreenEntry) defs.push(fullscreenEntry);
+      this.addItems(defs, 320);
     } else {
       this.buildScores();
     }
@@ -327,18 +333,18 @@ export class Menu extends Scene {
   }
 
   private buildScores() {
-    const tabs: ("top" | "history")[] = ["top", "history"];
-    tabs.forEach((tab, i) => {
+    const sorts: ResultSort[] = ["points", "date"];
+    sorts.forEach((sort, i) => {
       const text = this.addStatic(
         400 + i * 160,
         200,
-        tab === "top" ? "TOP 10" : "HISTORY",
+        sortLabel(sort),
         30,
         DIM,
       ).setOrigin(0.5);
       text.setInteractive({ useHandCursor: true });
-      text.on("pointerdown", () => this.selectTab(tab));
-      this.scoreTabs.push({ text, tab });
+      text.on("pointerdown", () => this.selectSort(sort));
+      this.scoreTabs.push({ text, sort });
     });
     this.scoreList = this.addStatic(480, 250, "", 22, WHITE).setOrigin(0.5, 0);
     this.scoreFoot = this.addStatic(480, 660, "", 20, DIM).setOrigin(0.5);
@@ -350,52 +356,39 @@ export class Menu extends Scene {
     this.renderScores();
   }
 
-  private selectTab(tab: "top" | "history") {
-    if (this.scoresTab === tab) return;
-    this.scoresTab = tab;
+  private selectSort(sort: ResultSort) {
+    if (this.scoresSort === sort) return;
+    this.scoresSort = sort;
     this.historyScroll = 0;
     getSfx().uiMove();
     this.renderScores();
   }
 
   private renderScores() {
-    for (const { text, tab } of this.scoreTabs) {
-      const active = tab === this.scoresTab;
-      const label = tab === "top" ? "TOP 10" : "HISTORY";
+    for (const { text, sort } of this.scoreTabs) {
+      const active = sort === this.scoresSort;
+      const label = sortLabel(sort);
       text.setText(active ? `> ${label} <` : label);
       text.setColor(active ? GOLD : DIM);
     }
 
-    const results = loadResults();
+    const results = sortResults(loadResults(), this.scoresSort);
     const empty = "NO GAMES YET — PLAY ONE!";
-
-    if (this.scoresTab === "top") {
-      const header = " #   LITERS  LV  RESULT  DATE";
-      const body = topScores(results, TOP_N)
-        .map(
-          (r, i) =>
-            `${String(i + 1).padStart(2, " ")}  ${fmtScore(r.score)}  ` +
-            `${String(r.level).padStart(2, " ")}  ${r.won ? "WON " : "LOST"}  ${fmtDate(r.at)}`,
-        )
-        .join("\n");
-      this.scoreList?.setText(`${header}\n${body || empty}`);
-      this.scoreFoot?.setText("ESC / ENTER — BACK");
-      return;
-    }
-
-    const header = "    LITERS  LV  RESULT  DATE";
     this.historyScroll = clampScroll(
       this.historyScroll,
       results.length,
       HISTORY_ROWS,
     );
+    const header = " #   LITERS  LV  RESULT  DATE";
     const body = results
       .slice(this.historyScroll, this.historyScroll + HISTORY_ROWS)
-      .map(
-        (r) =>
-          `  ${fmtScore(r.score)}  ${String(r.level).padStart(2, " ")}  ` +
-          `${r.won ? "WON " : "LOST"}  ${fmtDate(r.at)}`,
-      )
+      .map((r, i) => {
+        const rank = String(this.historyScroll + i + 1).padStart(2, " ");
+        return (
+          `${rank}  ${fmtScore(r.score)}  ` +
+          `${String(r.level).padStart(2, " ")}  ${r.won ? "WON " : "LOST"}  ${fmtDate(r.at)}`
+        );
+      })
       .join("\n");
     this.scoreList?.setText(`${header}\n${body || empty}`);
     if (results.length > HISTORY_ROWS) {
@@ -418,13 +411,10 @@ export class Menu extends Scene {
     back: boolean,
   ) {
     if (left || right) {
-      this.scoresTab = this.scoresTab === "top" ? "history" : "top";
-      this.historyScroll = 0;
-      getSfx().uiMove();
-      this.renderScores();
+      this.selectSort(this.scoresSort === "points" ? "date" : "points");
       return;
     }
-    if (this.scoresTab === "history" && (down || up)) {
+    if (down || up) {
       const next = clampScroll(
         this.historyScroll + (down ? 1 : -1),
         loadResults().length,
@@ -471,11 +461,19 @@ export class Menu extends Scene {
     this.refresh();
   }
 
+  private toggleMusic() {
+    const settings = loadSettings();
+    const music = !settings.music;
+    saveSettings({ ...settings, music });
+    getMusic().setEnabled(music);
+    this.refresh();
+  }
+
   private goto(mode: Mode) {
     this.mode = mode;
     this.select = 0;
     if (mode === "scores") {
-      this.scoresTab = "top";
+      this.scoresSort = "points";
       this.historyScroll = 0;
     }
     this.rebuild();
@@ -489,10 +487,10 @@ export class Menu extends Scene {
     Flow.resumeGame(this.scene);
   }
 
-  private quitToMenu() {
+  private endGame() {
     getSamples().play("close");
     const game = this.scene.get("Game") as Game;
-    Flow.quitToMenu(this.scene, game);
+    Flow.endGameAndShowScores(this.scene, game);
   }
 
   private refresh() {

@@ -1,13 +1,18 @@
 import { type GameObjects, Scene } from "phaser";
 import { generateVectorArt } from "../art/vectorArt";
-import { initAudio, runAudioSelfCheck, runSoundsSelfCheck } from "../audio";
+import {
+  getMusic,
+  initAudio,
+  runAudioSelfCheck,
+  runSoundsSelfCheck,
+} from "../audio";
 import { SPRITE_SHEETS } from "../data/enemySprites";
 import { FOES, runSelfCheck } from "../data/level1";
 import { runLevelsSelfCheck } from "../data/levels";
 import { runSkinsSelfCheck, skinKey } from "../data/skins";
 import { SOUNDS } from "../data/sounds";
 import { runStatsSelfCheck } from "../data/stats";
-import { runStoreSelfCheck } from "../data/store";
+import { loadSettings, runStoreSelfCheck } from "../data/store";
 import { runWeaponsSelfCheck, WEAPONS } from "../data/weapons";
 import { runControlsSelfCheck } from "../input/controls";
 
@@ -112,6 +117,7 @@ export class Boot extends Scene {
     runSoundsSelfCheck();
     initAudio(this.sound);
     this.sound.volume = 0.8;
+    getMusic().setEnabled(loadSettings().music);
     this.scene.start("Menu");
   }
 

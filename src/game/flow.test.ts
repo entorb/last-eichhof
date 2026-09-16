@@ -18,7 +18,6 @@ function makeSwitcher() {
     pause: (scene: string) => push("pause", scene),
     stop: (scene: string) => push("stop", scene),
     bringToTop: (scene: string) => push("bringToTop", scene),
-    restart: (data?: object) => push("restart", data),
   };
 }
 
@@ -62,16 +61,16 @@ describe("scene flow", () => {
     expect(getRun().score).toBe(1234);
   });
 
-  it("pause QUIT aborts the run, stops Game and restarts Menu", () => {
+  it("pause END GAME aborts the run and opens Menu on the scores", () => {
     newRun();
     const abortGame = vi.fn(() => endRun());
     const s = makeSwitcher();
-    Flow.quitToMenu(s, { abortGame });
+    Flow.endGameAndShowScores(s, { abortGame });
     expect(abortGame).toHaveBeenCalledOnce();
     expect(hasRun()).toBe(false);
     expect(s.calls).toEqual([
       ["stop", "Game"],
-      ["restart", { pause: false }],
+      ["start", "Menu", { pause: false, scores: true }],
     ]);
   });
 
