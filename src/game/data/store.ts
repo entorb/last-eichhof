@@ -1,5 +1,4 @@
 export type Difficulty = "easy" | "normal" | "hard";
-export type GraphicsMode = "retro" | "modern";
 export type ControlsMode = "auto" | "touch" | "keyboard";
 
 export interface GameResult {
@@ -11,7 +10,6 @@ export interface GameResult {
 
 export interface Settings {
   difficulty: Difficulty;
-  graphics: GraphicsMode;
   controls: ControlsMode;
   autoFire: boolean;
   music: boolean;
@@ -28,13 +26,6 @@ export const DIFFICULTY: Record<
 
 export const DIFFICULTY_ORDER: Difficulty[] = ["easy", "normal", "hard"];
 
-export const GRAPHICS: Record<GraphicsMode, { label: string }> = {
-  retro: { label: "RETRO" },
-  modern: { label: "MODERN" },
-};
-
-export const GRAPHICS_ORDER: GraphicsMode[] = ["modern", "retro"];
-
 export type ResultSort = "points" | "date";
 
 const RESULTS_KEY = "eichhof.results";
@@ -42,7 +33,6 @@ const SETTINGS_KEY = "eichhof.settings";
 
 export const DEFAULT_SETTINGS: Settings = {
   difficulty: "normal",
-  graphics: "retro",
   controls: "auto",
   autoFire: false,
   music: true,
@@ -118,10 +108,6 @@ export function parseSettings(raw: string | null): Settings {
     obj.difficulty === "hard"
       ? obj.difficulty
       : DEFAULT_SETTINGS.difficulty;
-  const graphics =
-    obj.graphics === "retro" || obj.graphics === "modern"
-      ? obj.graphics
-      : DEFAULT_SETTINGS.graphics;
   const controls =
     obj.controls === "auto" ||
     obj.controls === "touch" ||
@@ -134,7 +120,7 @@ export function parseSettings(raw: string | null): Settings {
       : DEFAULT_SETTINGS.autoFire;
   const music =
     typeof obj.music === "boolean" ? obj.music : DEFAULT_SETTINGS.music;
-  return { difficulty, graphics, controls, autoFire, music };
+  return { difficulty, controls, autoFire, music };
 }
 
 function safeGet(key: string): string | null {
@@ -231,23 +217,6 @@ export function runStoreSelfCheck(): void {
     parseSettings(JSON.stringify({ difficulty: "nope" })).difficulty ===
       "normal",
     "invalid difficulty",
-  );
-  assert(
-    parseSettings(JSON.stringify({ difficulty: "hard" })).graphics === "retro",
-    "graphics defaults retro",
-  );
-  assert(
-    parseSettings(JSON.stringify({ graphics: "retro" })).graphics === "retro",
-    "valid graphics",
-  );
-  assert(
-    parseSettings(JSON.stringify({ graphics: "nope" })).graphics === "retro",
-    "invalid graphics",
-  );
-  assert(
-    parseSettings(JSON.stringify({ difficulty: "hard", graphics: "retro" }))
-      .difficulty === "hard",
-    "keeps difficulty with graphics",
   );
   assert(parseSettings(null).controls === "auto", "controls defaults auto");
   assert(
