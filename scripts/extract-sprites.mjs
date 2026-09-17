@@ -1,5 +1,5 @@
 // Extract original DOS graphics from beer_exe/BEER.DAT into PNGs and generate
-// the per-level enemy rosters/spawn schedules used by the web rewrite.
+// the per-level enemy rosters/spawn schedules used by the web remake.
 // See docs/beer_dat.md for the file formats.
 //
 // Usage:

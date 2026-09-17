@@ -1,5 +1,9 @@
 import { type GameObjects, Scene } from "phaser";
-import { generateVectorArt } from "../art/vectorArt";
+import {
+  generateUiIcons,
+  runUiIconsSelfCheck,
+  UI_ICON_KEYS,
+} from "../art/uiIcons";
 import {
   getMusic,
   initAudio,
@@ -9,7 +13,6 @@ import {
 import { SPRITE_SHEETS } from "../data/enemySprites";
 import { FOES, runSelfCheck } from "../data/level1";
 import { runLevelsSelfCheck } from "../data/levels";
-import { runSkinsSelfCheck, skinKey } from "../data/skins";
 import { SOUNDS } from "../data/sounds";
 import { runStatsSelfCheck } from "../data/stats";
 import { loadSettings, runStoreSelfCheck } from "../data/store";
@@ -53,46 +56,33 @@ export class Boot extends Scene {
     this.makeStars("stars-far", 140, 2, 0.15, 0.5);
     this.makeStars("stars-near", 50, 3, 0.6, 1);
     this.makeWeaponIcons();
-    this.makeUiIcons();
+    generateUiIcons(this);
 
-    generateVectorArt(this);
-
-    for (const prefix of ["", "v-"] as const) {
-      for (const sheet of SPRITE_SHEETS) {
-        if (sheet.frames <= 1) continue;
-        this.anims.create({
-          key: `${prefix}${sheet.key}`,
-          frames: this.anims.generateFrameNumbers(`${prefix}${sheet.key}`, {
-            start: 0,
-            end: sheet.frames - 1,
-          }),
-          frameRate: sheet.frameRate,
-          repeat: sheet.key === "explosion" ? 0 : -1,
-        });
-      }
+    for (const sheet of SPRITE_SHEETS) {
+      if (sheet.frames <= 1) continue;
+      this.anims.create({
+        key: sheet.key,
+        frames: this.anims.generateFrameNumbers(sheet.key, {
+          start: 0,
+          end: sheet.frames - 1,
+        }),
+        frameRate: sheet.frameRate,
+        repeat: sheet.key === "explosion" ? 0 : -1,
+      });
     }
     for (const sheet of SPRITE_SHEETS) {
-      for (const mode of ["retro", "modern"] as const) {
-        const key = skinKey(sheet.key, mode);
-        if (!this.textures.exists(key)) {
-          throw new Error(`selfcheck: missing texture ${key}`);
-        }
+      if (!this.textures.exists(sheet.key)) {
+        throw new Error(`selfcheck: missing texture ${sheet.key}`);
       }
     }
-    for (const extra of [
-      "cork",
-      "pellet",
-      "stars-far",
-      "stars-near",
-      "ui-forward",
-      "ui-buy",
-      "ui-upgrade",
-      "ui-sell",
-    ]) {
-      if (!this.textures.exists(skinKey(extra, "modern"))) {
-        throw new Error(
-          `selfcheck: missing texture ${skinKey(extra, "modern")}`,
-        );
+    for (const extra of ["cork", "pellet", "stars-far", "stars-near"]) {
+      if (!this.textures.exists(extra)) {
+        throw new Error(`selfcheck: missing texture ${extra}`);
+      }
+    }
+    for (const icon of UI_ICON_KEYS) {
+      if (!this.textures.exists(icon)) {
+        throw new Error(`selfcheck: missing icon ${icon}`);
       }
     }
     for (const kind of Object.keys(FOES) as (keyof typeof FOES)[]) {
@@ -110,9 +100,9 @@ export class Boot extends Scene {
     runLevelsSelfCheck();
     runStoreSelfCheck();
     runStatsSelfCheck();
-    runSkinsSelfCheck();
     runWeaponsSelfCheck();
     runControlsSelfCheck();
+    runUiIconsSelfCheck();
     runAudioSelfCheck();
     runSoundsSelfCheck();
     initAudio(this.sound);
@@ -164,41 +154,6 @@ export class Boot extends Scene {
           g.fillRect(10, 16, 4, 10);
         }
       });
-    });
-  }
-
-  private makeUiIcons() {
-    this.makeSprite("ui-forward", 24, 24, (g) => {
-      g.fillStyle(0x2ea043);
-      g.fillTriangle(5, 3, 5, 21, 21, 12);
-      g.fillStyle(0x7ee787);
-      g.fillTriangle(8, 7, 8, 17, 18, 12);
-    });
-    this.makeSprite("ui-buy", 24, 24, (g) => {
-      g.fillStyle(0x7a3d00);
-      g.fillRoundedRect(2, 2, 20, 20, 4);
-      g.fillStyle(0xffb829);
-      g.fillRoundedRect(5, 5, 14, 14, 3);
-      g.fillStyle(0x7a3d00);
-      g.fillRect(10, 8, 4, 8);
-      g.fillRect(8, 10, 8, 4);
-    });
-    this.makeSprite("ui-upgrade", 24, 24, (g) => {
-      g.fillStyle(0x1f6fcc);
-      g.fillRoundedRect(2, 2, 20, 20, 4);
-      g.fillStyle(0x4da3ff);
-      g.fillRoundedRect(5, 5, 14, 14, 3);
-      g.fillStyle(0x0b3a69);
-      g.fillTriangle(12, 5, 20, 13, 4, 13);
-      g.fillRect(10, 13, 4, 7);
-    });
-    this.makeSprite("ui-sell", 24, 24, (g) => {
-      g.fillStyle(0x7a1420);
-      g.fillCircle(12, 12, 11);
-      g.fillStyle(0xff5f6e);
-      g.fillCircle(12, 12, 9);
-      g.fillStyle(0xffb3ba);
-      g.fillCircle(12, 12, 4);
     });
   }
 
