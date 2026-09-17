@@ -248,7 +248,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l0-f0": {
     texture: "l0-s0",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     invincible: true,
     path: [
@@ -260,7 +260,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l0-f1": {
     texture: "l0-s2",
-    shield: 1,
+    shield: 4,
     score: 4538,
     role: "boss",
     path: [
@@ -310,7 +310,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f0": {
     texture: "l1-s13",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     invincible: true,
     path: [
@@ -324,7 +324,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f1": {
     texture: "l1-s14",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "go", dx: 1032, dy: 0, speed: 120 }],
@@ -332,7 +332,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f2": {
     texture: "l1-s15",
     shield: 40,
-    score: 5000,
+    score: 15000,
     role: "miniboss",
     path: [
       { t: "go", dx: 216, dy: 0, speed: 120 },
@@ -357,7 +357,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f4": {
     texture: "l1-s11",
     shield: 2,
-    score: 50,
+    score: 33,
     role: "chaff",
     path: [
       { t: "go", dx: 144, dy: 0, speed: 480 },
@@ -456,15 +456,15 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l1-f5": {
     texture: "l1-s12",
-    shield: 6,
-    score: 50,
+    shield: 10,
+    score: 0,
     role: "chaff",
     path: [{ t: "go", dx: 996, dy: 0, speed: 240 }],
   },
   "l1-f6": {
     texture: "l1-s11",
     shield: 2,
-    score: 50,
+    score: 33,
     role: "chaff",
     path: [
       { t: "go", dx: 0, dy: 168, speed: 480 },
@@ -581,7 +581,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f7": {
     texture: "l1-s9",
     shield: 4,
-    score: 50,
+    score: 33,
     role: "chaff",
     path: [
       { t: "go", dx: -96, dy: 0, speed: 240 },
@@ -614,8 +614,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l1-f9": {
     texture: "l1-s5",
-    shield: 40,
-    score: 5000,
+    shield: 45,
+    score: 10000,
     role: "miniboss",
     path: [
       { t: "go", dx: 192, dy: 0, speed: 120 },
@@ -743,7 +743,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f11": {
     texture: "l1-s11",
     shield: 2,
-    score: 50,
+    score: 33,
     role: "chaff",
     path: [
       { t: "go", dx: 0, dy: -24, speed: 240 },
@@ -795,7 +795,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f12": {
     texture: "l1-s11",
     shield: 2,
-    score: 50,
+    score: 33,
     role: "chaff",
     path: [
       { t: "go", dx: 3, dy: -12, speed: 247.39 },
@@ -938,8 +938,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l1-f16": {
     texture: "l1-s2",
-    shield: 40,
-    score: 5000,
+    shield: 200,
+    score: 30000,
     role: "miniboss",
     path: [
       { t: "go", dx: 0, dy: 210, speed: 120 },
@@ -1187,7 +1187,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f22": {
     texture: "l1-s11",
     shield: 2,
-    score: 50,
+    score: 33,
     role: "chaff",
     path: [
       { t: "go", dx: -234, dy: 0, speed: 360 },
@@ -1250,7 +1250,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f23": {
     texture: "l1-s9",
     shield: 4,
-    score: 50,
+    score: 33,
     role: "chaff",
     path: [
       { t: "go", dx: -396, dy: 0, speed: 240 },
@@ -1261,7 +1261,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f24": {
     texture: "l1-s9",
     shield: 4,
-    score: 50,
+    score: 33,
     role: "chaff",
     path: [
       { t: "go", dx: 312, dy: 0, speed: 240 },
@@ -1271,7 +1271,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l1-f25": {
     texture: "l1-s6",
-    shield: 40,
+    shield: 400,
     score: 1500,
     role: "miniboss",
     path: [
@@ -1287,7 +1287,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l1-f26": {
     texture: "l1-s0",
-    shield: 6,
+    shield: 10,
     score: 58,
     role: "chaff",
     path: [
@@ -1303,7 +1303,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f27": {
     texture: "l1-s19",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "go", dx: -450, dy: 0, speed: 600 }],
@@ -1311,7 +1311,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f28": {
     texture: "l1-s19",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -1335,7 +1335,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f29": {
     texture: "l1-s18",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -1354,7 +1354,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f30": {
     texture: "l1-s18",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "go", dx: 510, dy: 0, speed: 600 }],
@@ -1362,7 +1362,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f31": {
     texture: "l1-s18",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -1383,7 +1383,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f32": {
     texture: "l1-s19",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -1400,8 +1400,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l1-f33": {
     texture: "l1-s4",
-    shield: 40,
-    score: 50,
+    shield: 999,
+    score: 33,
     role: "miniboss",
     path: [
       { t: "go", dx: 42, dy: 0, speed: 840 },
@@ -1410,8 +1410,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l1-f34": {
     texture: "l1-s4",
-    shield: 40,
-    score: 50,
+    shield: 999,
+    score: 33,
     role: "miniboss",
     invincible: true,
     path: [
@@ -1425,8 +1425,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l1-f35": {
     texture: "l1-s6",
-    shield: 40,
-    score: 5000,
+    shield: 100,
+    score: 15000,
     role: "miniboss",
     path: [
       { t: "go", dx: 300, dy: 0, speed: 120 },
@@ -1438,8 +1438,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l1-f36": {
     texture: "l1-s6",
-    shield: 40,
-    score: 5000,
+    shield: 100,
+    score: 15000,
     role: "miniboss",
     path: [
       { t: "go", dx: -300, dy: 0, speed: 120 },
@@ -1452,8 +1452,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l1-f37": {
     texture: "l1-s4",
-    shield: 1,
-    score: 50,
+    shield: 200,
+    score: -5536,
     role: "boss",
     path: [
       { t: "go", dx: 0, dy: 228, speed: 120 },
@@ -1476,8 +1476,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l1-f38": {
     texture: "l1-s0",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: 0, dy: -36, speed: 360 },
@@ -1511,8 +1511,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l1-f39": {
     texture: "l1-s0",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: 0, dy: -54, speed: 360 },
@@ -1537,7 +1537,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f42": {
     texture: "l1-s7",
     shield: 40,
-    score: 50,
+    score: 33,
     role: "miniboss",
     path: [
       { t: "go", dx: 0, dy: 180, speed: 240 },
@@ -1553,7 +1553,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f43": {
     texture: "l1-s11",
     shield: 2,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: 0, dy: -108, speed: 360 },
@@ -1563,28 +1563,28 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l1-f45": {
     texture: "l1-s0",
     shield: 5,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [{ t: "go", dx: 0, dy: 504, speed: 360 }],
   },
   "l1-f46": {
     texture: "l1-s1",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 0,
     role: "chaff",
     path: [{ t: "go", dx: 468, dy: 468, speed: 509.12 }],
   },
   "l1-f47": {
     texture: "l1-s1",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 0,
     role: "chaff",
     path: [{ t: "go", dx: -468, dy: 468, speed: 509.12 }],
   },
   "l1-f48": {
     texture: "l1-s7",
     shield: 40,
-    score: 50,
+    score: 33,
     role: "miniboss",
     path: [
       { t: "go", dx: 0, dy: 180, speed: 240 },
@@ -1601,7 +1601,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f0": {
     texture: "l2-s27",
     shield: 6,
-    score: 50,
+    score: 33,
     role: "chaff",
     path: [
       { t: "go", dx: 384, dy: 0, speed: 480 },
@@ -1628,8 +1628,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f2": {
     texture: "l2-s20",
-    shield: 40,
-    score: 5000,
+    shield: 200,
+    score: 10000,
     role: "miniboss",
     path: [
       { t: "go", dx: 0, dy: -258, speed: 120 },
@@ -1697,7 +1697,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f3": {
     texture: "l2-s1",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "go", dx: 780, dy: 0, speed: 600 }],
@@ -1705,7 +1705,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f4": {
     texture: "l2-s1",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "go", dx: 576, dy: -576, speed: 678.82 }],
@@ -1713,7 +1713,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f5": {
     texture: "l2-s1",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "go", dx: 0, dy: -510, speed: 600 }],
@@ -1721,7 +1721,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f6": {
     texture: "l2-s1",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "go", dx: -528, dy: -528, speed: 678.82 }],
@@ -1729,7 +1729,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f7": {
     texture: "l2-s1",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "go", dx: -720, dy: 0, speed: 600 }],
@@ -1737,7 +1737,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f8": {
     texture: "l2-s1",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "go", dx: -552, dy: 552, speed: 678.82 }],
@@ -1745,7 +1745,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f9": {
     texture: "l2-s1",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "go", dx: 0, dy: 540, speed: 600 }],
@@ -1753,15 +1753,15 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f10": {
     texture: "l2-s1",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "go", dx: 552, dy: 552, speed: 678.82 }],
   },
   "l2-f11": {
     texture: "l2-s12",
-    shield: 40,
-    score: 50,
+    shield: 999,
+    score: 33,
     role: "miniboss",
     path: [
       { t: "go", dx: 0, dy: 360, speed: 240 },
@@ -1771,8 +1771,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f12": {
     texture: "l2-s12",
-    shield: 40,
-    score: 5000,
+    shield: 120,
+    score: 10000,
     role: "miniboss",
     path: [
       { t: "go", dx: -12, dy: -6, speed: 134.16 },
@@ -1807,8 +1807,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f13": {
     texture: "l2-s12",
-    shield: 40,
-    score: 5000,
+    shield: 120,
+    score: 10000,
     role: "miniboss",
     path: [
       { t: "go", dx: 12, dy: -6, speed: 134.16 },
@@ -1846,7 +1846,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f14": {
     texture: "l2-s3",
     shield: 15,
-    score: 50,
+    score: 0,
     role: "miniboss",
     path: [
       { t: "go", dx: 0, dy: 234, speed: 360 },
@@ -1984,7 +1984,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f15": {
     texture: "l2-s3",
     shield: 15,
-    score: 50,
+    score: 0,
     role: "miniboss",
     path: [
       { t: "go", dx: -6, dy: 36, speed: 364.97 },
@@ -2365,7 +2365,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f25": {
     texture: "l2-s15",
-    shield: 6,
+    shield: 8,
     score: 100,
     role: "chaff",
     path: [
@@ -2391,7 +2391,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f26": {
     texture: "l2-s15",
-    shield: 6,
+    shield: 8,
     score: 100,
     role: "chaff",
     path: [
@@ -2417,7 +2417,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f27": {
     texture: "l2-s15",
-    shield: 6,
+    shield: 8,
     score: 100,
     role: "chaff",
     path: [
@@ -2443,7 +2443,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f28": {
     texture: "l2-s15",
-    shield: 6,
+    shield: 8,
     score: 100,
     role: "chaff",
     path: [
@@ -2469,7 +2469,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f29": {
     texture: "l2-s15",
-    shield: 6,
+    shield: 8,
     score: 100,
     role: "chaff",
     path: [
@@ -2495,7 +2495,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f30": {
     texture: "l2-s15",
-    shield: 6,
+    shield: 8,
     score: 100,
     role: "chaff",
     path: [
@@ -2521,7 +2521,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f31": {
     texture: "l2-s15",
-    shield: 6,
+    shield: 8,
     score: 100,
     role: "chaff",
     path: [
@@ -2547,7 +2547,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f32": {
     texture: "l2-s16",
-    shield: 6,
+    shield: 10,
     score: 100,
     role: "chaff",
     path: [
@@ -2579,7 +2579,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f33": {
     texture: "l2-s16",
-    shield: 6,
+    shield: 10,
     score: 100,
     role: "chaff",
     path: [
@@ -2605,7 +2605,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f34": {
     texture: "l2-s16",
-    shield: 6,
+    shield: 10,
     score: 100,
     role: "chaff",
     path: [
@@ -2631,7 +2631,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f35": {
     texture: "l2-s16",
-    shield: 6,
+    shield: 10,
     score: 100,
     role: "chaff",
     path: [
@@ -2657,7 +2657,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f36": {
     texture: "l2-s16",
-    shield: 6,
+    shield: 10,
     score: 100,
     role: "chaff",
     path: [
@@ -2683,7 +2683,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f37": {
     texture: "l2-s16",
-    shield: 6,
+    shield: 10,
     score: 100,
     role: "chaff",
     path: [
@@ -2709,7 +2709,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f38": {
     texture: "l2-s16",
-    shield: 6,
+    shield: 10,
     score: 100,
     role: "chaff",
     path: [
@@ -3221,7 +3221,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f44": {
     texture: "l2-s27",
     shield: 4,
-    score: 50,
+    score: 33,
     role: "chaff",
     path: [
       { t: "go", dx: 0, dy: 144, speed: 480 },
@@ -3311,27 +3311,27 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f45": {
     texture: "l2-s9",
     shield: 4,
-    score: 50,
+    score: 33,
     role: "chaff",
     path: [{ t: "go", dx: 0, dy: -744, speed: 240 }],
   },
   "l2-f46": {
     texture: "l2-s8",
     shield: 4,
-    score: 50,
+    score: 33,
     role: "chaff",
     path: [{ t: "go", dx: 984, dy: 0, speed: 240 }],
   },
   "l2-f47": {
     texture: "l2-s11",
     shield: 4,
-    score: 50,
+    score: 33,
     role: "chaff",
     path: [{ t: "go", dx: -732, dy: 732, speed: 339.41 }],
   },
   "l2-f48": {
     texture: "l2-s22",
-    shield: 40,
+    shield: 60,
     score: 200,
     role: "miniboss",
     path: [
@@ -3375,7 +3375,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f50": {
     texture: "l2-s1",
     shield: 4,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -3390,7 +3390,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f51": {
     texture: "l2-s6",
-    shield: 6,
+    shield: 10,
     score: 500,
     role: "chaff",
     path: [{ t: "go", dx: 0, dy: 714, speed: 60 }],
@@ -3398,7 +3398,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f52": {
     texture: "l2-s29",
     shield: 4,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "go", dx: 0, dy: 600, speed: 600 }],
@@ -3406,7 +3406,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f53": {
     texture: "l2-s29",
     shield: 4,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "go", dx: -600, dy: 600, speed: 678.82 }],
@@ -3414,7 +3414,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f55": {
     texture: "l2-s30",
     shield: 4,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -3440,7 +3440,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f56": {
     texture: "l2-s30",
     shield: 4,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -3469,7 +3469,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f57": {
     texture: "l2-s30",
     shield: 4,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -3536,8 +3536,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f59": {
     texture: "l2-s26",
-    shield: 40,
-    score: 5000,
+    shield: 240,
+    score: 30000,
     role: "miniboss",
     path: [
       { t: "go", dx: 0, dy: -618, speed: 120 },
@@ -3603,7 +3603,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f60": {
     texture: "l2-s24",
     shield: 6,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: 0, dy: 96, speed: 480 },
@@ -3655,8 +3655,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f62": {
     texture: "l2-s13",
-    shield: 1,
-    score: 50,
+    shield: 300,
+    score: -5536,
     role: "boss",
     path: [
       { t: "go", dx: 0, dy: 306, speed: 120 },
@@ -3899,7 +3899,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f63": {
     texture: "l2-s23",
-    shield: 40,
+    shield: 100,
     score: 1500,
     role: "miniboss",
     path: [
@@ -3914,7 +3914,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f64": {
     texture: "l2-s25",
-    shield: 6,
+    shield: 10,
     score: 50,
     role: "chaff",
     path: [
@@ -3937,7 +3937,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f65": {
     texture: "l2-s25",
-    shield: 6,
+    shield: 10,
     score: 50,
     role: "chaff",
     path: [
@@ -3986,7 +3986,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f68": {
     texture: "l2-s8",
-    shield: 6,
+    shield: 12,
     score: 50,
     role: "chaff",
     path: [
@@ -4009,7 +4009,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f69": {
     texture: "l2-s9",
-    shield: 6,
+    shield: 12,
     score: 50,
     role: "chaff",
     path: [
@@ -4032,7 +4032,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f70": {
     texture: "l2-s10",
-    shield: 6,
+    shield: 12,
     score: 50,
     role: "chaff",
     path: [
@@ -4055,7 +4055,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f71": {
     texture: "l2-s11",
-    shield: 6,
+    shield: 12,
     score: 50,
     role: "chaff",
     path: [
@@ -4078,7 +4078,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f73": {
     texture: "l2-s22",
-    shield: 40,
+    shield: 60,
     score: 50,
     role: "miniboss",
     path: [
@@ -4089,7 +4089,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f74": {
     texture: "l2-s27",
     shield: 5,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: 0, dy: 168, speed: 480 },
@@ -4183,8 +4183,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f75": {
     texture: "l2-s4",
-    shield: 6,
-    score: 50,
+    shield: 10,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: -18, dy: 24, speed: 600 },
@@ -4339,8 +4339,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l2-f76": {
     texture: "l2-s5",
-    shield: 6,
-    score: 50,
+    shield: 10,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: -192, dy: -384, speed: 536.66 },
@@ -4549,7 +4549,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f77": {
     texture: "l2-s2",
     shield: 4,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: 72, dy: 288, speed: 742.16 },
@@ -4560,7 +4560,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f78": {
     texture: "l2-s3",
     shield: 4,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: -9, dy: 108, speed: 722.5 },
@@ -4573,7 +4573,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f79": {
     texture: "l2-s4",
     shield: 4,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: -12, dy: 36, speed: 758.95 },
@@ -4597,7 +4597,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f80": {
     texture: "l2-s5",
     shield: 4,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: 6, dy: 72, speed: 722.5 },
@@ -4612,14 +4612,14 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f81": {
     texture: "l2-s7",
     shield: 4,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [{ t: "go", dx: 0, dy: 576, speed: 720 }],
   },
   "l2-f82": {
     texture: "l2-s14",
     shield: 4,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: -54, dy: 270, speed: 611.88 },
@@ -4630,7 +4630,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f83": {
     texture: "l2-s15",
     shield: 4,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: 12, dy: 60, speed: 611.88 },
@@ -4648,7 +4648,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f84": {
     texture: "l2-s16",
     shield: 4,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [
       { t: "go", dx: 0, dy: 24, speed: 480 },
@@ -4679,21 +4679,21 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l2-f85": {
     texture: "l2-s19",
     shield: 4,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [{ t: "go", dx: 0, dy: 546, speed: 840 }],
   },
   "l3-f0": {
     texture: "l3-s11",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     invincible: true,
     path: [{ t: "go", dx: 0, dy: 750, speed: 120 }],
   },
   "l3-f1": {
     texture: "l3-s5",
-    shield: 6,
+    shield: 8,
     score: 100,
     role: "chaff",
     path: [
@@ -4808,7 +4808,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f2": {
     texture: "l3-s4",
-    shield: 6,
+    shield: 8,
     score: 100,
     role: "chaff",
     path: [
@@ -4925,7 +4925,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f3": {
     texture: "l3-s6",
-    shield: 6,
+    shield: 8,
     score: 100,
     role: "chaff",
     path: [
@@ -5030,8 +5030,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f4": {
     texture: "l3-s2",
-    shield: 6,
-    score: 50,
+    shield: 10,
+    score: 20,
     role: "chaff",
     path: [
       { t: "go", dx: 120, dy: 0, speed: 600 },
@@ -5086,8 +5086,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f5": {
     texture: "l3-s9",
-    shield: 40,
-    score: 5000,
+    shield: 300,
+    score: 20000,
     role: "miniboss",
     path: [
       { t: "go", dx: 0, dy: 276, speed: 120 },
@@ -5116,8 +5116,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f6": {
     texture: "l3-s2",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 40,
     role: "chaff",
     path: [
       { t: "go", dx: -432, dy: 0, speed: 240 },
@@ -5126,8 +5126,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f7": {
     texture: "l3-s2",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 40,
     role: "chaff",
     path: [
       { t: "go", dx: 432, dy: 0, speed: 240 },
@@ -5137,8 +5137,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f8": {
     texture: "l3-s2",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 40,
     role: "chaff",
     path: [
       { t: "go", dx: -348, dy: 0, speed: 240 },
@@ -5147,8 +5147,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f9": {
     texture: "l3-s2",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 40,
     role: "chaff",
     path: [
       { t: "go", dx: -264, dy: 0, speed: 240 },
@@ -5157,8 +5157,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f10": {
     texture: "l3-s2",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 40,
     role: "chaff",
     path: [
       { t: "go", dx: -180, dy: 0, speed: 240 },
@@ -5167,8 +5167,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f11": {
     texture: "l3-s2",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 40,
     role: "chaff",
     path: [
       { t: "go", dx: 348, dy: 0, speed: 240 },
@@ -5178,8 +5178,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f12": {
     texture: "l3-s2",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 40,
     role: "chaff",
     path: [
       { t: "go", dx: 180, dy: 0, speed: 240 },
@@ -5189,8 +5189,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f14": {
     texture: "l3-s2",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 40,
     role: "chaff",
     path: [
       { t: "go", dx: 264, dy: 0, speed: 240 },
@@ -5200,7 +5200,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f16": {
     texture: "l3-s12",
-    shield: 6,
+    shield: 12,
     score: 75,
     role: "chaff",
     path: [
@@ -5233,7 +5233,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f17": {
     texture: "l3-s12",
-    shield: 6,
+    shield: 12,
     score: 75,
     role: "chaff",
     path: [
@@ -5252,7 +5252,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f18": {
     texture: "l3-s15",
-    shield: 6,
+    shield: 12,
     score: 2000,
     role: "chaff",
     invincible: true,
@@ -5413,8 +5413,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l3-f21": {
     texture: "l3-s14",
-    shield: 40,
-    score: 50,
+    shield: 999,
+    score: 33,
     role: "miniboss",
     path: [{ t: "go", dx: 990, dy: 0, speed: 360 }],
   },
@@ -5431,15 +5431,15 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l3-f23": {
     texture: "l3-s17",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [{ t: "wait", ms: 1250 }],
   },
   "l3-f24": {
     texture: "l3-s10",
-    shield: 1,
-    score: 50,
+    shield: 150,
+    score: -25536,
     role: "boss",
     path: [
       { t: "go", dx: 0, dy: 198, speed: 120 },
@@ -5522,13 +5522,13 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l3-f25": {
     texture: "l3-s3",
     shield: 4,
-    score: 50,
+    score: 0,
     role: "chaff",
     path: [{ t: "go", dx: 0, dy: 600, speed: 480 }],
   },
   "l4-f0": {
     texture: "l4-s21",
-    shield: 40,
+    shield: 100,
     score: 5000,
     role: "miniboss",
     path: [
@@ -5540,8 +5540,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f1": {
     texture: "l4-s22",
-    shield: 40,
-    score: 50,
+    shield: 9999,
+    score: 33,
     role: "miniboss",
     path: [
       { t: "release", kind: "l4-f6", x: 90, y: 6 },
@@ -5567,7 +5567,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f2": {
     texture: "l4-s7",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -5579,7 +5579,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f3": {
     texture: "l4-s7",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -5591,7 +5591,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f5": {
     texture: "l4-s7",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -5603,7 +5603,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f6": {
     texture: "l4-s7",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -5615,7 +5615,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f7": {
     texture: "l4-s7",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -5627,7 +5627,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f8": {
     texture: "l4-s7",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -5639,7 +5639,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f9": {
     texture: "l4-s7",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -5651,7 +5651,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f10": {
     texture: "l4-s7",
     shield: 1,
-    score: 50,
+    score: 33,
     role: "chaff",
     transparent: true,
     path: [
@@ -5662,14 +5662,14 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f11": {
     texture: "l4-s11",
-    shield: 6,
+    shield: 10,
     score: 200,
     role: "chaff",
     path: [{ t: "go", dx: -720, dy: 720, speed: 339.41 }],
   },
   "l4-f13": {
     texture: "l4-s15",
-    shield: 40,
+    shield: 100,
     score: 3500,
     role: "miniboss",
     path: [
@@ -5684,7 +5684,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f14": {
     texture: "l4-s15",
-    shield: 40,
+    shield: 100,
     score: 3500,
     role: "miniboss",
     path: [
@@ -5700,7 +5700,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f15": {
     texture: "l4-s15",
-    shield: 40,
+    shield: 100,
     score: 3500,
     role: "miniboss",
     path: [
@@ -5715,8 +5715,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f17": {
     texture: "l4-s20",
-    shield: 40,
-    score: 5000,
+    shield: 240,
+    score: 10000,
     role: "miniboss",
     path: [
       { t: "go", dx: 12, dy: 3, speed: 247.39 },
@@ -5895,8 +5895,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f18": {
     texture: "l4-s1",
-    shield: 40,
-    score: 5000,
+    shield: 200,
+    score: 8000,
     role: "miniboss",
     path: [
       { t: "go", dx: 0, dy: 30, speed: 120 },
@@ -5958,13 +5958,13 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f19": {
     texture: "l4-s23",
     shield: 18,
-    score: 50,
+    score: 25,
     role: "miniboss",
     path: [{ t: "go", dx: 0, dy: 468, speed: 360 }],
   },
   "l4-f20": {
     texture: "l4-s16",
-    shield: 6,
+    shield: 8,
     score: 200,
     role: "chaff",
     path: [
@@ -6145,7 +6145,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f22": {
     texture: "l4-s3",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [
       { t: "go", dx: -168, dy: 63, speed: 512.64 },
@@ -6158,7 +6158,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f23": {
     texture: "l4-s3",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [
       { t: "go", dx: 108, dy: 216, speed: 536.66 },
@@ -6169,7 +6169,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f24": {
     texture: "l4-s2",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [
       { t: "go", dx: 3, dy: 24, speed: 483.74 },
@@ -6198,7 +6198,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f25": {
     texture: "l4-s4",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [
       { t: "go", dx: -6, dy: 24, speed: 494.77 },
@@ -6230,7 +6230,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f26": {
     texture: "l4-s5",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [
       { t: "go", dx: -60, dy: 96, speed: 566.04 },
@@ -6244,7 +6244,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f27": {
     texture: "l4-s18",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [
       { t: "go", dx: -24, dy: 21, speed: 637.81 },
@@ -6272,7 +6272,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f28": {
     texture: "l4-s17",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [
       { t: "go", dx: -192, dy: 96, speed: 536.66 },
@@ -6285,7 +6285,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f30": {
     texture: "l4-s16",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [
       { t: "go", dx: 0, dy: -24, speed: 480 },
@@ -6317,7 +6317,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f31": {
     texture: "l4-s17",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [
       { t: "go", dx: 60, dy: -120, speed: 536.66 },
@@ -6330,7 +6330,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f32": {
     texture: "l4-s2",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [
       { t: "go", dx: 24, dy: -21, speed: 637.81 },
@@ -6362,7 +6362,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f33": {
     texture: "l4-s5",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [
       { t: "go", dx: 24, dy: -15, speed: 566.04 },
@@ -6407,7 +6407,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f34": {
     texture: "l4-s18",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [
       { t: "go", dx: 24, dy: -6, speed: 494.77 },
@@ -6446,7 +6446,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f35": {
     texture: "l4-s3",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [
       { t: "go", dx: 48, dy: -6, speed: 483.74 },
@@ -6469,7 +6469,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   "l4-f36": {
     texture: "l4-s8",
     shield: 6,
-    score: 50,
+    score: 25,
     role: "chaff",
     path: [{ t: "go", dx: 936, dy: 0, speed: 480 }],
   },
@@ -6517,8 +6517,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f38": {
     texture: "l4-s3",
-    shield: 40,
-    score: 50,
+    shield: 100,
+    score: 25,
     role: "miniboss",
     path: [
       { t: "go", dx: 0, dy: 180, speed: 360 },
@@ -6582,8 +6582,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f39": {
     texture: "l4-s7",
-    shield: 6,
-    score: 50,
+    shield: 12,
+    score: 25,
     role: "chaff",
     transparent: true,
     path: [
@@ -6614,8 +6614,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f40": {
     texture: "l4-s7",
-    shield: 6,
-    score: 50,
+    shield: 12,
+    score: 25,
     role: "chaff",
     transparent: true,
     path: [
@@ -6646,8 +6646,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f41": {
     texture: "l4-s26",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 33,
     role: "chaff",
     path: [
       { t: "go", dx: 0, dy: -144, speed: 480 },
@@ -6745,8 +6745,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f42": {
     texture: "l4-s26",
-    shield: 6,
-    score: 50,
+    shield: 8,
+    score: 33,
     role: "chaff",
     path: [
       { t: "go", dx: 0, dy: -144, speed: 480 },
@@ -6857,8 +6857,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f43": {
     texture: "l4-s13",
-    shield: 40,
-    score: 5000,
+    shield: 80,
+    score: 7000,
     role: "miniboss",
     path: [
       { t: "go", dx: 102, dy: 0, speed: 120 },
@@ -6882,8 +6882,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f44": {
     texture: "l4-s13",
-    shield: 40,
-    score: 5000,
+    shield: 80,
+    score: 7000,
     role: "miniboss",
     path: [
       { t: "go", dx: 216, dy: 0, speed: 120 },
@@ -6906,7 +6906,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f45": {
     texture: "l4-s8",
-    shield: 6,
+    shield: 14,
     score: 600,
     role: "chaff",
     path: [
@@ -6921,7 +6921,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f46": {
     texture: "l4-s8",
-    shield: 6,
+    shield: 14,
     score: 600,
     role: "chaff",
     path: [
@@ -6936,8 +6936,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f47": {
     texture: "l4-s7",
-    shield: 6,
-    score: 50,
+    shield: 14,
+    score: 0,
     role: "chaff",
     transparent: true,
     path: [
@@ -6968,8 +6968,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f48": {
     texture: "l4-s7",
-    shield: 6,
-    score: 50,
+    shield: 14,
+    score: 0,
     role: "chaff",
     transparent: true,
     path: [
@@ -6996,8 +6996,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f49": {
     texture: "l4-s7",
-    shield: 6,
-    score: 50,
+    shield: 14,
+    score: 0,
     role: "chaff",
     transparent: true,
     path: [
@@ -7028,8 +7028,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f50": {
     texture: "l4-s7",
-    shield: 6,
-    score: 50,
+    shield: 14,
+    score: 0,
     role: "chaff",
     transparent: true,
     path: [
@@ -7058,8 +7058,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f51": {
     texture: "l4-s7",
-    shield: 6,
-    score: 50,
+    shield: 14,
+    score: 0,
     role: "chaff",
     transparent: true,
     path: [
@@ -7084,7 +7084,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f52": {
     texture: "l4-s14",
-    shield: 40,
+    shield: 130,
     score: 4500,
     role: "miniboss",
     path: [
@@ -7253,7 +7253,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f65": {
     texture: "l4-s4",
-    shield: 6,
+    shield: 8,
     score: 100,
     role: "chaff",
     path: [
@@ -7293,7 +7293,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f67": {
     texture: "l4-s18",
-    shield: 6,
+    shield: 8,
     score: 152,
     role: "chaff",
     path: [
@@ -7308,7 +7308,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f68": {
     texture: "l4-s18",
-    shield: 6,
+    shield: 8,
     score: 152,
     role: "chaff",
     path: [
@@ -7330,7 +7330,7 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f69": {
     texture: "l4-s18",
-    shield: 6,
+    shield: 8,
     score: 152,
     role: "chaff",
     path: [
@@ -7341,8 +7341,8 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f70": {
     texture: "l4-s10",
-    shield: 1,
-    score: 50,
+    shield: 650,
+    score: -25536,
     role: "boss",
     path: [
       { t: "go", dx: 0, dy: -228, speed: 60 },
@@ -8009,96 +8009,96 @@ export const FOES: Record<FoeKind, FoeSpec> = {
   },
   "l4-f71": {
     texture: "l4-s24",
-    shield: 1,
-    score: 50,
+    shield: 200,
+    score: -25536,
     role: "boss",
     transparent: true,
     path: [{ t: "go", dx: 0, dy: 624, speed: 480 }],
   },
   "l4-f72": {
     texture: "l4-s24",
-    shield: 1,
-    score: 50,
+    shield: 200,
+    score: -25536,
     role: "boss",
     transparent: true,
     path: [{ t: "go", dx: 600, dy: 600, speed: 678.82 }],
   },
   "l4-f73": {
     texture: "l4-s24",
-    shield: 1,
-    score: 50,
+    shield: 200,
+    score: -25536,
     role: "boss",
     transparent: true,
     path: [{ t: "go", dx: 840, dy: 0, speed: 480 }],
   },
   "l4-f74": {
     texture: "l4-s24",
-    shield: 1,
-    score: 50,
+    shield: 200,
+    score: -25536,
     role: "boss",
     transparent: true,
     path: [{ t: "go", dx: 576, dy: -576, speed: 678.82 }],
   },
   "l4-f75": {
     texture: "l4-s24",
-    shield: 1,
-    score: 50,
+    shield: 200,
+    score: -25536,
     role: "boss",
     transparent: true,
     path: [{ t: "go", dx: 0, dy: -600, speed: 480 }],
   },
   "l4-f76": {
     texture: "l4-s24",
-    shield: 1,
-    score: 50,
+    shield: 200,
+    score: -25536,
     role: "boss",
     transparent: true,
     path: [{ t: "go", dx: -600, dy: -600, speed: 678.82 }],
   },
   "l4-f77": {
     texture: "l4-s24",
-    shield: 1,
-    score: 50,
+    shield: 200,
+    score: -25536,
     role: "boss",
     transparent: true,
     path: [{ t: "go", dx: -864, dy: 0, speed: 480 }],
   },
   "l4-f78": {
     texture: "l4-s24",
-    shield: 1,
-    score: 50,
+    shield: 200,
+    score: -25536,
     role: "boss",
     transparent: true,
     path: [{ t: "go", dx: -624, dy: 624, speed: 678.82 }],
   },
   "l4-f79": {
     texture: "l4-s24",
-    shield: 1,
-    score: 50,
+    shield: 200,
+    score: -25536,
     role: "boss",
     transparent: true,
     path: [{ t: "go", dx: 0, dy: 612, speed: 720 }],
   },
   "l4-f80": {
     texture: "l4-s24",
-    shield: 1,
-    score: 50,
+    shield: 200,
+    score: -25536,
     role: "boss",
     transparent: true,
     path: [{ t: "go", dx: 864, dy: 0, speed: 720 }],
   },
   "l4-f81": {
     texture: "l4-s24",
-    shield: 1,
-    score: 50,
+    shield: 200,
+    score: -25536,
     role: "boss",
     transparent: true,
     path: [{ t: "go", dx: 0, dy: -576, speed: 720 }],
   },
   "l4-f82": {
     texture: "l4-s24",
-    shield: 1,
-    score: 50,
+    shield: 200,
+    score: -25536,
     role: "boss",
     transparent: true,
     path: [{ t: "go", dx: -792, dy: 0, speed: 720 }],
@@ -8117,15 +8117,18 @@ export interface RosterSpawn {
 
 export interface RosterLevel {
   name: string;
+  bonusScore: number;
+  bonusMoney: number;
   spawns: RosterSpawn[];
   checkpoints: number[];
   bosses: number;
-  bossHp: number;
 }
 
 export const ROSTERS: RosterLevel[] = [
   {
     name: "EASY START",
+    bonusScore: 0,
+    bonusMoney: 400,
     spawns: [
       {
         at: 0.05,
@@ -8228,10 +8231,11 @@ export const ROSTERS: RosterLevel[] = [
     ],
     checkpoints: [],
     bosses: 13,
-    bossHp: 15,
   },
   {
     name: "FELDSCHLOESSCHEN",
+    bonusScore: 20000,
+    bonusMoney: 20,
     spawns: [
       {
         at: 3.2,
@@ -8719,10 +8723,11 @@ export const ROSTERS: RosterLevel[] = [
     ],
     checkpoints: [37.6, 55.1, 58.3, 90.4, 119.2, 147.2],
     bosses: 1,
-    bossHp: 50,
   },
   {
     name: "OH WEISSBIER",
+    bonusScore: 20000,
+    bonusMoney: 560,
     spawns: [
       {
         at: 0.05,
@@ -9396,10 +9401,11 @@ export const ROSTERS: RosterLevel[] = [
     ],
     checkpoints: [13, 14.4, 33.8, 50, 74.4, 80.5, 93.6, 114.4, 160],
     bosses: 1,
-    bossHp: 75,
   },
   {
     name: "NO MORE COCKTAILS",
+    bonusScore: 50000,
+    bonusMoney: 440,
     spawns: [
       {
         at: 0.05,
@@ -9821,10 +9827,11 @@ export const ROSTERS: RosterLevel[] = [
     ],
     checkpoints: [11.2, 38.25, 43.3, 56.65, 73.75],
     bosses: 3,
-    bossHp: 38,
   },
   {
     name: "THE DAY AFTER",
+    bonusScore: 20000,
+    bonusMoney: 0,
     spawns: [
       {
         at: 0.05,
@@ -10748,6 +10755,5 @@ export const ROSTERS: RosterLevel[] = [
     ],
     checkpoints: [19.5, 40.8, 66.4, 113.6, 143.2, 158.4, 185.4, 209.05],
     bosses: 1,
-    bossHp: 120,
   },
 ];

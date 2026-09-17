@@ -13,6 +13,7 @@ import {
 import { SPRITE_SHEETS } from "../data/enemySprites";
 import { FOES, runSelfCheck } from "../data/level1";
 import { runLevelsSelfCheck } from "../data/levels";
+import { runRunSelfCheck } from "../data/run";
 import { SOUNDS } from "../data/sounds";
 import { runStatsSelfCheck } from "../data/stats";
 import { loadSettings, runStoreSelfCheck } from "../data/store";
@@ -98,6 +99,7 @@ export class Boot extends Scene {
 
     runSelfCheck();
     runLevelsSelfCheck();
+    runRunSelfCheck();
     runStoreSelfCheck();
     runStatsSelfCheck();
     runWeaponsSelfCheck();
