@@ -3,6 +3,7 @@ import {
   Geom,
   Input,
   Scene,
+  Scenes,
   TintModes,
   type Types,
 } from "phaser";
@@ -52,6 +53,7 @@ const TOP = HUD_H;
 const BOTTOM = PLAY.h;
 const JOY_RADIUS = 90;
 const JOY_THUMB = 34;
+const MAX_FOES = 26; // DOS `MAXFOES`
 
 interface Enemy {
   sprite: GameObjects.Sprite;
@@ -64,7 +66,7 @@ interface Enemy {
 }
 
 interface Shot {
-  sprite: GameObjects.Image;
+  sprite: GameObjects.Sprite;
   vx: number;
   vy: number;
   power: number;
@@ -135,11 +137,7 @@ export class Game extends Scene {
   private spawnIndex = 0;
   private queue: Spawn[] = [];
   private bossesLeft = 1;
-  private bossHp = 40;
   private fieldOn = true;
-  private shieldBonus = 0;
-  private scoreScale = 1;
-  private oneHitKill = false;
   private checkpoints: number[] = [];
   private nextCheckpoint = 0;
   private flashText!: GameObjects.Text;
@@ -159,10 +157,16 @@ export class Game extends Scene {
   create() {
     const settings = loadSettings();
     this.autoFire = settings.autoFire;
+    this.events.on(Scenes.Events.RESUME, () => {
+      this.autoFire = loadSettings().autoFire;
+    });
     this.touch = resolveTouchControls(
       settings.controls,
       this.sys.game.device.input.touch,
     );
+    this.diff = DIFFICULTY[settings.difficulty];
+    if (!hasRun()) newRun();
+    this.run = getRun();
     this.bg = this.add
       .rectangle(0, 0, PLAY.w, PLAY.h, 0x05060d)
       .setOrigin(0)
@@ -205,7 +209,7 @@ export class Game extends Scene {
       })
       .setOrigin(1, 0)
       .setDepth(150)
-      .setVisible(this.oneHitKill);
+      .setVisible(this.run.godMode);
 
     // Top-left MENU button, available in keyboard and touch mode alike.
     this.pauseButton = this.add
@@ -277,15 +281,12 @@ export class Game extends Scene {
     });
     kb.on("keydown-G", (e: KeyboardEvent) => {
       if (e.repeat) return;
-      this.oneHitKill = !this.oneHitKill;
-      this.godText.setVisible(this.oneHitKill);
-      if (this.oneHitKill) this.run.money += 10000;
+      this.run.godMode = !this.run.godMode;
+      this.godText.setVisible(this.run.godMode);
+      if (this.run.godMode) this.run.money += 10000;
     });
     if (this.touch) this.buildTouchControls();
 
-    this.diff = DIFFICULTY[settings.difficulty];
-    if (!hasRun()) newRun();
-    this.run = getRun();
     this.resetLevel();
     getMusic().setScene("game");
     getSamples().play("go");
@@ -456,18 +457,19 @@ export class Game extends Scene {
     this.enemyShots = [];
     this.explosions = [];
 
-    this.score = this.run.score;
+    const level = getLevel(this.run.level);
+    // DOS `initlevel`: the `.DSC` bonus score/money is added at level start,
+    // and the end-of-level money conversion measures the delta since before it.
     this.levelStartScore = this.run.score;
+    this.run.score += level.bonusScore;
+    this.run.money += level.bonusMoney;
+    this.score = this.run.score;
     this.lives = this.run.lives;
     this.resultRecorded = false;
     this.levelTime = 0;
     this.spawnIndex = 0;
-    const level = getLevel(this.run.level);
     getSfx().setLevel(this.run.level);
     this.queue = level.build();
-    this.bossHp = level.bossHp;
-    this.shieldBonus = level.shieldBonus;
-    this.scoreScale = level.scoreScale;
     this.checkpoints = level.checkpoints;
     this.nextCheckpoint = 0;
     this.flashTimer = 0;
@@ -534,10 +536,12 @@ export class Game extends Scene {
   }
 
   private makeShot(x: number, y: number, tint: number, em: Emitter): Shot {
-    const sprite = this.add
-      .image(x + em.ox, y + em.oy, "cork")
-      .setTint(tint)
-      .setDepth(5);
+    // DOS projectile art (`shot-<n>`); fall back to a tinted cork if a sheet
+    // is missing (the procedural fallback Boot also uses for mount icons).
+    const texture = this.textures.exists(em.sprite) ? em.sprite : "cork";
+    const sprite = this.add.sprite(x + em.ox, y + em.oy, texture).setDepth(5);
+    if (this.anims.exists(texture)) sprite.play(texture);
+    else if (texture === "cork") sprite.setTint(tint);
     return {
       sprite,
       vx: em.vx,
@@ -545,7 +549,7 @@ export class Game extends Scene {
       power: em.power,
       kind: em.kind,
       age: 0,
-      life: em.kind === "straight" ? 0 : SPECIAL_LIFE,
+      life: em.kind === "straight" ? 0 : (em.life ?? SPECIAL_LIFE),
       tint,
       release: em.release
         ? { after: em.release.after, shots: em.release.shots }
@@ -636,8 +640,9 @@ export class Game extends Scene {
 
   private updateEnemies(dt: number) {
     const target = { x: this.ship.x, y: this.ship.y };
-    const scale =
-      this.diff.foeSpeed * (1 + 0.05 * Math.max(0, this.run.level - 1));
+    // DOS foe speed comes from the path alone; only the web difficulty option
+    // scales it (normal = 1, i.e. exact DOS).
+    const scale = this.diff.foeSpeed;
     const count = this.enemies.length;
     for (let i = 0; i < count; i++) {
       const e = this.enemies[i];
@@ -647,9 +652,10 @@ export class Game extends Scene {
         if (ev.t === "spawn") {
           this.spawnEnemy(ev.kind, e.sprite.x, e.sprite.y, false);
         } else if (ev.t === "release") {
-          // Only scheduled foes release minions, so the DOS release
-          // graph cannot chain and run away.
-          if (e.scheduled && this.state === "play") {
+          // DOS `FOERELEASEFOE` chains (a released minion may release its own).
+          // Cap concurrent foes like DOS `MAXFOES` so a looping foe cannot
+          // spawn without bound.
+          if (this.state === "play" && this.enemies.length < MAX_FOES) {
             this.spawnEnemy(
               ev.kind,
               e.sprite.x + ev.x,
@@ -717,18 +723,27 @@ export class Game extends Scene {
         if (deadEnemies.has(e) || !overlap(shot.sprite, e.sprite)) continue;
         const spec = FOES[e.kind];
         if (spec.transparent) continue;
-        deadShots.add(shot);
-        if (!spec.invincible) {
-          e.shield -= this.oneHitKill ? 1e9 : shot.power;
-          if (e.shield <= 0) {
-            deadEnemies.add(e);
-            this.killEnemy(e);
-          } else {
-            e.hitFlash = 0.08;
-            e.sprite.setTint(0xffffff).setTintMode(TintModes.FILL);
-          }
+        if (spec.invincible) {
+          // DOS `foehit`: an invincible foe kills the shot but is unharmed.
+          deadShots.add(shot);
+          break;
         }
-        break;
+        // DOS `foehit`: `shot.power -= foe.shield; foe.shield -= shot.power`.
+        // A shot with power left over pierces and can hit further foes.
+        const dmg = this.run.godMode ? 1e9 : shot.power;
+        shot.power -= e.shield;
+        e.shield -= dmg;
+        if (e.shield <= 0) {
+          deadEnemies.add(e);
+          this.killEnemy(e);
+        } else {
+          e.hitFlash = 0.08;
+          e.sprite.setTint(0xffffff).setTintMode(TintModes.FILL);
+        }
+        if (shot.power <= 0) {
+          deadShots.add(shot);
+          break;
+        }
       }
     }
     if (this.state === "play") {
@@ -769,7 +784,7 @@ export class Game extends Scene {
   }
 
   private playerHit() {
-    if (this.oneHitKill) return;
+    if (this.run.godMode) return;
     this.spawnExplosion(this.ship.x, this.ship.y);
     getSfx().hit();
     this.cameras.main.shake(220, 0.008);
@@ -894,9 +909,8 @@ export class Game extends Scene {
     const enemy: Enemy = {
       sprite,
       kind,
-      shield:
-        spec.role === "boss" ? this.bossHp : spec.shield + this.shieldBonus,
-      score: Math.round(spec.score * this.scoreScale),
+      shield: spec.shield,
+      score: spec.score,
       runner,
       hitFlash: 0,
       scheduled,
@@ -950,11 +964,13 @@ export class Game extends Scene {
       getSfx().win();
       this.run.score = this.score;
       this.run.lives = this.lives;
-      this.run.money += moneyForLevel(this.score - this.levelStartScore) + 1000;
       if (this.run.level >= LEVELS.length) {
         this.message.setText("GAME COMPLETE\nYOU WIN!");
         this.saveResult(true);
       } else {
+        // DOS `weaponmanager` converts the level's score delta (bonus + kills)
+        // into money before the shop, and is skipped on the final level.
+        this.run.money += moneyForLevel(this.score - this.levelStartScore);
         this.message.setText("LEVEL CLEARED");
       }
     }

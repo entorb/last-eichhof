@@ -409,6 +409,12 @@ export class Menu extends Scene {
           icon: UI_ICONS.play,
         },
         {
+          label: () => `AUTO-FIRE: ${loadSettings().autoFire ? "ON" : "OFF"}`,
+          activate: () => this.toggleAutoFire(),
+          cycle: () => this.toggleAutoFire(),
+          icon: UI_ICONS.autofire,
+        },
+        {
           label: () => `MUSIC: ${loadSettings().music ? "ON" : "OFF"}`,
           activate: () => this.toggleMusic(),
           cycle: () => this.toggleMusic(),
@@ -420,7 +426,7 @@ export class Menu extends Scene {
           icon: UI_ICONS.exit,
         },
       ];
-      if (fullscreenEntry) defs.push(fullscreenEntry);
+      if (fullscreenEntry) defs.splice(defs.length - 1, 0, fullscreenEntry);
       this.addItems(defs, 300);
     } else {
       this.buildScores();
