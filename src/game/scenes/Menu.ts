@@ -1,14 +1,11 @@
-import { type GameObjects, Input, Scale, Scene, type Types } from "phaser";
+import { GameObjects, Geom, Input, Scale, Scene, type Types } from "phaser";
+import { UI_ICONS } from "../art/uiIcons";
 import { getMusic, getSamples, getSfx } from "../audio";
-import { bgKey, skinKey } from "../data/skins";
 import { readGlobalGames, reportGameStart } from "../data/stats";
 import {
   clampScroll,
   DIFFICULTY,
   DIFFICULTY_ORDER,
-  GRAPHICS,
-  GRAPHICS_ORDER,
-  type GraphicsMode,
   loadResults,
   loadSettings,
   type ResultSort,
@@ -19,22 +16,50 @@ import * as Flow from "../flow";
 import { resolveTouchControls } from "../input/controls";
 import { toggleFullscreen } from "../input/fullscreen";
 import { TouchPad } from "../input/touchpad";
+import { hasInstallPrompt, promptInstall } from "../pwa";
 import type { Game } from "./Game";
 
-type Mode = "menu" | "options" | "scores" | "pause";
+type Mode = "menu" | "options" | "scores" | "pause" | "install";
 
 interface Item {
   label: () => string;
   activate: () => void;
   cycle?: (dir: number) => void;
   pointerUp?: boolean;
+  icon?: string;
+}
+
+interface Entry {
+  text: GameObjects.Text;
+  def: Item;
+  icon?: GameObjects.Image;
+  hit?: GameObjects.Zone;
+}
+
+interface Layoutable {
+  text: GameObjects.Text;
+  icon?: GameObjects.Image;
+  hit?: GameObjects.Zone;
 }
 
 const GOLD = "#ffd54a";
 const DIM = "#8b90a6";
+const HOVER = "#c9cee0";
 const WHITE = "#e8eaf2";
 
+const PANEL_FILL = 0x0b0e1a;
+const PANEL_BORDER = 0x2a3350;
+const PANEL_ALPHA = 0.78;
+
+const ICON_SIZE = 26;
+const ICON_GAP = 14;
+
 const HISTORY_ROWS = 15;
+const GAME_TITLE = "The Last Eichhof";
+const CONTACT_URL = "https://entorb.net/contact.php?origin=last-eichhof";
+const SHARE_LABEL = "SHARE";
+const SHARE_COPIED = "LINK COPIED";
+const SHARE_REVERT_MS = 1500;
 
 function fmtDate(at: number): string {
   const d = new Date(at);
@@ -53,7 +78,6 @@ function sortLabel(sort: ResultSort): string {
 export class Menu extends Scene {
   private starsFar!: GameObjects.TileSprite;
   private starsNear!: GameObjects.TileSprite;
-  private graphics: GraphicsMode = "modern";
 
   private cursors!: Types.Input.Keyboard.CursorKeys;
   private keyW!: Input.Keyboard.Key;
@@ -67,9 +91,16 @@ export class Menu extends Scene {
   private mode: Mode = "menu";
   private pauseMode = false;
   private startScores = false;
-  private select = 0;
-  private items: { text: GameObjects.Text; def: Item }[] = [];
+  // Selectable entries grouped into visual rows. Up/down move between rows,
+  // left/right between entries of one row (or cycle a value item).
+  private rows: Entry[][] = [];
+  private row = 0;
+  private col = 0;
   private dynamic: GameObjects.GameObject[] = [];
+  private panel!: GameObjects.Graphics;
+  private highlight!: GameObjects.Graphics;
+  private title: GameObjects.Text | null = null;
+  private hover: Entry | null = null;
   private scoresSort: ResultSort = "points";
   private historyScroll = 0;
   private scoreTabs: { text: GameObjects.Text; sort: ResultSort }[] = [];
@@ -77,6 +108,7 @@ export class Menu extends Scene {
   private scoreFoot: GameObjects.Text | null = null;
   private globalGames: number | null = null;
   private statsText: GameObjects.Text | null = null;
+  private shareText: GameObjects.Text | null = null;
   private statsRequest = 0;
   private touch = false;
   private pad: TouchPad | null = null;
@@ -91,26 +123,17 @@ export class Menu extends Scene {
   }
 
   create() {
-    this.graphics = loadSettings().graphics;
-    const modern = this.graphics === "modern";
-    let overlayAlpha = 1;
-    if (this.pauseMode) overlayAlpha = 0.72;
-    else if (modern) overlayAlpha = 0;
+    const overlayAlpha = this.pauseMode ? 0.72 : 1;
     this.add
       .rectangle(0, 0, 960, 720, 0x05060d, overlayAlpha)
       .setOrigin(0)
       .setDepth(-20);
-    this.add
-      .image(0, 0, bgKey(1))
-      .setOrigin(0)
-      .setDepth(-21)
-      .setVisible(modern && !this.pauseMode);
     this.starsFar = this.add
-      .tileSprite(480, 360, 960, 720, skinKey("stars-far", this.graphics))
+      .tileSprite(480, 360, 960, 720, "stars-far")
       .setDepth(-10)
       .setVisible(!this.pauseMode);
     this.starsNear = this.add
-      .tileSprite(480, 360, 960, 720, skinKey("stars-near", this.graphics))
+      .tileSprite(480, 360, 960, 720, "stars-near")
       .setDepth(-9)
       .setAlpha(0.7)
       .setVisible(!this.pauseMode);
@@ -141,7 +164,8 @@ export class Menu extends Scene {
 
     if (this.startScores) this.mode = "scores";
     else this.mode = this.pauseMode ? "pause" : "menu";
-    this.select = 0;
+    this.row = 0;
+    this.col = 0;
     this.rebuild();
     if (this.startScores) {
       getMusic().setScene("scores");
@@ -151,10 +175,11 @@ export class Menu extends Scene {
     }
   }
 
-  update(_time: number, delta: number) {
+  update(time: number, delta: number) {
     const dt = Math.min(delta / 1000, 0.05);
     this.starsFar.tilePositionY -= 40 * dt;
     this.starsNear.tilePositionY -= 110 * dt;
+    this.animateTitle(time / 1000);
 
     const pad = this.pad?.poll();
     const confirm =
@@ -184,24 +209,19 @@ export class Menu extends Scene {
       return;
     }
 
-    if (this.items.length === 0) return;
-    if (down) {
-      this.select = (this.select + 1) % this.items.length;
-      this.refresh();
-      getSfx().uiMove();
-    }
-    if (up) {
-      this.select = (this.select - 1 + this.items.length) % this.items.length;
-      this.refresh();
-      getSfx().uiMove();
-    }
-    const current = this.items[this.select].def;
+    if (down) this.moveRow(1);
+    if (up) this.moveRow(-1);
+    const current = this.rows[this.row]?.[this.col]?.def;
+    if (!current) return;
     if (current.cycle) {
       if (left) current.cycle(-1);
       if (right) current.cycle(1);
       if (left || right) getSfx().uiMove();
+    } else {
+      if (left) this.moveCol(-1);
+      if (right) this.moveCol(1);
     }
-    if (back && this.mode === "options") {
+    if (back && (this.mode === "options" || this.mode === "install")) {
       getSfx().uiConfirm();
       this.goto("menu");
       return;
@@ -217,16 +237,55 @@ export class Menu extends Scene {
     }
   }
 
+  private animateTitle(t: number) {
+    const title = this.title;
+    if (!title?.active) return;
+    title.setScale(1 + 0.015 * Math.sin(t * 1.8));
+    title.setShadow(0, 0, "#ff9d2e", 10 + 6 * Math.sin(t * 2.2));
+  }
+
+  private moveRow(dir: number) {
+    const next = Math.max(0, Math.min(this.rows.length - 1, this.row + dir));
+    if (next === this.row) return;
+    this.row = next;
+    this.col = Math.min(this.col, this.rows[this.row].length - 1);
+    getSfx().uiMove();
+    this.refresh();
+  }
+
+  private moveCol(dir: number) {
+    const next = Math.max(
+      0,
+      Math.min(this.rows[this.row].length - 1, this.col + dir),
+    );
+    if (next === this.col) return;
+    this.col = next;
+    getSfx().uiMove();
+    this.refresh();
+  }
+
   private rebuild() {
     for (const o of this.dynamic) o.destroy();
     this.dynamic = [];
-    this.items = [];
+    this.rows = [];
+    this.row = 0;
+    this.col = 0;
+    this.hover = null;
+    this.title = null;
     this.scoreTabs = [];
     this.scoreList = null;
     this.scoreFoot = null;
     this.statsText = null;
+    this.shareText = null;
 
-    this.addStatic(480, 150, "THE LAST EICHHOF", 56, GOLD).setOrigin(0.5);
+    this.panel = this.add.graphics().setDepth(-5);
+    this.dynamic.push(this.panel);
+    this.highlight = this.add.graphics().setDepth(9);
+    this.dynamic.push(this.highlight);
+
+    this.title = this.addStatic(480, 110, "THE LAST EICHHOF", 58, GOLD)
+      .setOrigin(0.5)
+      .setShadow(0, 0, "#ff9d2e", 12);
 
     const fullscreenEntry: Item | null = this.scale.fullscreen.available
       ? {
@@ -234,11 +293,13 @@ export class Menu extends Scene {
             this.scale.isFullscreen ? "EXIT FULLSCREEN" : "FULLSCREEN",
           activate: () => toggleFullscreen(this),
           pointerUp: true,
+          icon: UI_ICONS.fullscreen,
         }
       : null;
 
     if (this.mode === "menu") {
-      this.addStatic(480, 210, "Rewrite by Torben", 22, DIM).setOrigin(0.5);
+      this.addStatic(480, 162, "Remake by Torben", 22, DIM).setOrigin(0.5);
+      this.addDivider(480, 196, 460);
       const defs: Item[] = [
         {
           label: () => "START GAME",
@@ -246,106 +307,239 @@ export class Menu extends Scene {
             reportGameStart();
             Flow.startNewGame(this.scene);
           },
+          icon: UI_ICONS.play,
         },
         {
           label: () =>
             `DIFFICULTY: ${DIFFICULTY[loadSettings().difficulty].label}`,
           activate: () => this.cycleDifficulty(1),
           cycle: (dir) => this.cycleDifficulty(dir),
+          icon: UI_ICONS.difficulty,
         },
-        { label: () => "SCORES", activate: () => this.goto("scores") },
-        { label: () => "OPTIONS", activate: () => this.goto("options") },
+        {
+          label: () => "SCORES",
+          activate: () => this.goto("scores"),
+          icon: UI_ICONS.scores,
+        },
+        {
+          label: () => "OPTIONS",
+          activate: () => this.goto("options"),
+          icon: UI_ICONS.options,
+        },
       ];
       if (fullscreenEntry) defs.splice(2, 0, fullscreenEntry);
-      this.addItems(defs, 340);
+      this.addItems(defs, 246, 58);
+      this.addDivider(480, 528, 460);
+      this.addActionRow(480, 562);
       this.statsText = this.addStatic(
         480,
-        610,
+        606,
         this.globalGamesLabel(),
         20,
         DIM,
       ).setOrigin(0.5);
-      this.addLinkRow(480, 652);
+      this.addLinkRow(480, 644);
       this.loadGlobalGames();
     } else if (this.mode === "options") {
-      this.addStatic(480, 220, "OPTIONS", 34, WHITE).setOrigin(0.5);
+      this.addStatic(480, 205, "OPTIONS", 34, WHITE).setOrigin(0.5);
+      this.addDivider(480, 240, 360);
       const defs: Item[] = [
-        {
-          label: () => `GRAPHICS: ${GRAPHICS[loadSettings().graphics].label}`,
-          activate: () => this.cycleGraphics(1),
-          cycle: (dir) => this.cycleGraphics(dir),
-        },
         {
           label: () => `AUTO-FIRE: ${loadSettings().autoFire ? "ON" : "OFF"}`,
           activate: () => this.toggleAutoFire(),
           cycle: () => this.toggleAutoFire(),
+          icon: UI_ICONS.autofire,
         },
         {
           label: () => `MUSIC: ${loadSettings().music ? "ON" : "OFF"}`,
           activate: () => this.toggleMusic(),
           cycle: () => this.toggleMusic(),
+          icon: UI_ICONS.music,
         },
         {
           label: () => "BACK",
           activate: () => this.goto("menu"),
+          icon: UI_ICONS.back,
         },
       ];
-      this.addItems(defs, 320);
+      this.addItems(defs, 300);
+    } else if (this.mode === "install") {
+      this.addStatic(480, 205, "INSTALL AS APP", 34, WHITE).setOrigin(0.5);
+      this.addDivider(480, 240, 360);
+      this.addStatic(
+        480,
+        300,
+        "Install this game on your device:",
+        22,
+        DIM,
+      ).setOrigin(0.5);
+      this.addStatic(480, 366, "Android:", 22, GOLD).setOrigin(0.5);
+      this.addStatic(
+        480,
+        402,
+        'Menu (3 dots) → "Add to Home screen"',
+        22,
+        WHITE,
+      ).setOrigin(0.5);
+      this.addStatic(480, 466, "iPhone:", 22, GOLD).setOrigin(0.5);
+      this.addStatic(
+        480,
+        502,
+        'Share icon → "Add to Home Screen"',
+        22,
+        WHITE,
+      ).setOrigin(0.5);
+      this.addItems(
+        [
+          {
+            label: () => "BACK",
+            activate: () => this.goto("menu"),
+            icon: UI_ICONS.back,
+          },
+        ],
+        580,
+      );
     } else if (this.mode === "pause") {
-      this.addStatic(480, 220, "PAUSED", 34, WHITE).setOrigin(0.5);
+      this.addStatic(480, 205, "PAUSED", 34, WHITE).setOrigin(0.5);
+      this.addDivider(480, 240, 360);
       const defs: Item[] = [
-        { label: () => "RESUME", activate: () => this.resumeGame() },
+        {
+          label: () => "RESUME",
+          activate: () => this.resumeGame(),
+          icon: UI_ICONS.play,
+        },
         {
           label: () => `MUSIC: ${loadSettings().music ? "ON" : "OFF"}`,
           activate: () => this.toggleMusic(),
           cycle: () => this.toggleMusic(),
+          icon: UI_ICONS.music,
         },
-        { label: () => "END GAME", activate: () => this.endGame() },
+        {
+          label: () => "END GAME",
+          activate: () => this.endGame(),
+          icon: UI_ICONS.exit,
+        },
       ];
       if (fullscreenEntry) defs.push(fullscreenEntry);
-      this.addItems(defs, 320);
+      this.addItems(defs, 300);
     } else {
       this.buildScores();
     }
 
+    this.drawPanel();
     this.refresh();
   }
 
-  private addItems(defs: Item[], startY: number) {
-    defs.forEach((def, i) => {
-      const text = this.addStatic(480, startY + i * 52, "", 30, DIM);
-      text.setOrigin(0.5).setInteractive({ useHandCursor: true });
-      text.on(def.pointerUp ? "pointerup" : "pointerdown", () =>
-        this.activateItem(i),
-      );
-      this.items.push({ text, def });
-    });
-    this.select = Math.min(this.select, Math.max(0, defs.length - 1));
+  // Vertical list: one selectable entry per row, icon + left-aligned label,
+  // auto-centred as a block.
+  private addItems(defs: Item[], startY: number, step = 54) {
+    const placed = defs.map((def, i) => ({
+      y: startY + i * step,
+      entry: this.addEntry(0, startY + i * step, def, 30, 0),
+    }));
+    const iconW = defs.some((d) => d.icon) ? ICON_SIZE + ICON_GAP : 0;
+    const maxText = Math.max(...placed.map((p) => p.entry.text.width));
+    const block = iconW + maxText;
+    const left = 480 - block / 2;
+    for (const { y, entry } of placed) {
+      entry.text.setOrigin(0, 0.5);
+      entry.icon?.setPosition(left + ICON_SIZE / 2, y);
+      entry.text.setPosition(left + iconW, y);
+      entry.hit?.setPosition(480, y).setSize(block + 90, 46);
+      this.rows.push([entry]);
+    }
   }
 
-  private activateItem(i: number) {
-    const item = this.items[i];
-    if (!item) return;
-    this.select = i;
+  private addDivider(x: number, y: number, w: number) {
+    const line = this.add.rectangle(x, y, w, 2, 0x3a4059).setDepth(8);
+    this.dynamic.push(line);
+  }
+
+  private addEntry(
+    x: number,
+    y: number,
+    def: Item,
+    size: number,
+    origin = 0.5,
+  ): Entry {
+    const text = this.addStatic(x, y, def.label(), size, DIM).setOrigin(origin);
+    let icon: GameObjects.Image | undefined;
+    if (def.icon) {
+      icon = this.add.image(x, y, def.icon).setDepth(10);
+      icon.setScale(ICON_SIZE / icon.height);
+      this.dynamic.push(icon);
+    }
+    const hit = this.add
+      .zone(x, y, 10, 10)
+      .setDepth(12)
+      .setInteractive({ useHandCursor: true });
+    this.dynamic.push(hit);
+    const entry: Entry = { text, def, icon, hit };
+    hit.on(def.pointerUp ? "pointerup" : "pointerdown", () =>
+      this.activateEntry(entry),
+    );
+    hit.on("pointerover", () => {
+      this.hover = entry;
+      this.refresh();
+    });
+    hit.on("pointerout", () => {
+      if (this.hover === entry) {
+        this.hover = null;
+        this.refresh();
+      }
+    });
+    return entry;
+  }
+
+  private activateEntry(entry: Entry) {
+    const r = this.rows.findIndex((row) => row.includes(entry));
+    if (r < 0) return;
+    this.row = r;
+    this.col = this.rows[r].indexOf(entry);
     getSfx().uiConfirm();
     this.refresh();
-    item.def.activate();
+    entry.def.activate();
+  }
+
+  // Centres a horizontal row of icon+label items around x, sizing each item's
+  // pointer target to its own content.
+  private layoutEntries(
+    x: number,
+    y: number,
+    items: Layoutable[],
+    gap: number,
+    zoneH: number,
+  ) {
+    const widths = items.map(
+      (it) => (it.icon ? it.icon.displayWidth + 8 : 0) + it.text.width,
+    );
+    const total = widths.reduce((a, b) => a + b, 0) + gap * (items.length - 1);
+    let cx = x - total / 2;
+    for (const it of items) {
+      const start = cx;
+      if (it.icon) {
+        it.icon.setPosition(cx + it.icon.displayWidth / 2, y);
+        cx += it.icon.displayWidth + 8;
+      }
+      it.text.setOrigin(0, 0.5).setPosition(cx, y);
+      cx += it.text.width;
+      if (it.hit) {
+        it.hit.setPosition((start + cx) / 2, y).setSize(cx - start + 24, zoneH);
+      }
+      cx += gap;
+    }
   }
 
   private buildScores() {
     const sorts: ResultSort[] = ["points", "date"];
-    sorts.forEach((sort, i) => {
-      const text = this.addStatic(
-        400 + i * 160,
-        200,
-        sortLabel(sort),
-        30,
-        DIM,
-      ).setOrigin(0.5);
+    for (const sort of sorts) {
+      const text = this.addStatic(0, 200, sortLabel(sort), 30, DIM).setOrigin(
+        0.5,
+      );
       text.setInteractive({ useHandCursor: true });
       text.on("pointerdown", () => this.selectSort(sort));
       this.scoreTabs.push({ text, sort });
-    });
+    }
     this.scoreList = this.addStatic(480, 250, "", 22, WHITE).setOrigin(0.5, 0);
     this.scoreFoot = this.addStatic(480, 660, "", 20, DIM).setOrigin(0.5);
     this.scoreFoot.setInteractive({ useHandCursor: true });
@@ -354,6 +548,19 @@ export class Menu extends Scene {
       this.goto("menu");
     });
     this.renderScores();
+  }
+
+  // Centres the sort tabs as a group; the active label is wider, so fixed
+  // positions would overlap.
+  private layoutScoreTabs() {
+    const gap = 40;
+    const widths = this.scoreTabs.map((t) => t.text.width);
+    const total = widths.reduce((a, b) => a + b, 0) + gap * (widths.length - 1);
+    let cx = 480 - total / 2;
+    this.scoreTabs.forEach((tab, i) => {
+      tab.text.setPosition(cx + widths[i] / 2, 200);
+      cx += widths[i] + gap;
+    });
   }
 
   private selectSort(sort: ResultSort) {
@@ -368,9 +575,10 @@ export class Menu extends Scene {
     for (const { text, sort } of this.scoreTabs) {
       const active = sort === this.scoresSort;
       const label = sortLabel(sort);
-      text.setText(active ? `> ${label} <` : label);
+      text.setText(active ? `[ ${label} ]` : label);
       text.setColor(active ? GOLD : DIM);
     }
+    this.layoutScoreTabs();
 
     const results = sortResults(loadResults(), this.scoresSort);
     const empty = "NO GAMES YET — PLAY ONE!";
@@ -444,17 +652,6 @@ export class Menu extends Scene {
     this.refresh();
   }
 
-  private cycleGraphics(dir: number) {
-    const settings = loadSettings();
-    const idx = GRAPHICS_ORDER.indexOf(settings.graphics);
-    const next =
-      GRAPHICS_ORDER[
-        (idx + dir + GRAPHICS_ORDER.length) % GRAPHICS_ORDER.length
-      ];
-    saveSettings({ ...settings, graphics: next });
-    this.refresh();
-  }
-
   private toggleAutoFire() {
     const settings = loadSettings();
     saveSettings({ ...settings, autoFire: !settings.autoFire });
@@ -471,7 +668,8 @@ export class Menu extends Scene {
 
   private goto(mode: Mode) {
     this.mode = mode;
-    this.select = 0;
+    this.row = 0;
+    this.col = 0;
     if (mode === "scores") {
       this.scoresSort = "points";
       this.historyScroll = 0;
@@ -494,10 +692,59 @@ export class Menu extends Scene {
   }
 
   private refresh() {
-    for (const { text, def } of this.items) {
-      const selected = text === this.items[this.select]?.text;
-      text.setText(def.label()).setColor(selected ? GOLD : DIM);
+    const selected = this.rows[this.row]?.[this.col];
+    for (const row of this.rows) {
+      for (const entry of row) {
+        let color = DIM;
+        let alpha = 0.55;
+        if (entry === selected) {
+          color = GOLD;
+          alpha = 1;
+        } else if (entry === this.hover) {
+          color = HOVER;
+          alpha = 0.9;
+        }
+        entry.text.setText(entry.def.label()).setColor(color);
+        entry.icon?.setAlpha(alpha);
+      }
     }
+    this.drawHighlight(selected);
+  }
+
+  private drawHighlight(entry: Entry | undefined) {
+    this.highlight.clear();
+    if (!entry?.hit) return;
+    const b = entry.hit.getBounds();
+    const selected = entry === this.rows[this.row]?.[this.col];
+    this.highlight.fillStyle(0xffd54a, selected ? 0.14 : 0.06);
+    this.highlight.fillRoundedRect(b.x, b.y, b.width, b.height, 10);
+    this.highlight.lineStyle(2, 0xffd54a, selected ? 0.75 : 0.3);
+    this.highlight.strokeRoundedRect(b.x, b.y, b.width, b.height, 10);
+  }
+
+  // Translucent card behind the content, auto-fitted to the text/icon bounds.
+  private drawPanel() {
+    this.panel.clear();
+    let bounds: Geom.Rectangle | null = null;
+    for (const o of this.dynamic) {
+      if (!(o instanceof GameObjects.Text) && !(o instanceof GameObjects.Image))
+        continue;
+      const r = o.getBounds();
+      if (bounds)
+        bounds = Geom.Rectangle.Union(bounds, r, new Geom.Rectangle());
+      else bounds = new Geom.Rectangle(r.x, r.y, r.width, r.height);
+    }
+    if (!bounds) return;
+    const x = Math.max(10, bounds.x - 34);
+    const y = Math.max(10, bounds.y - 26);
+    const w = Math.min(960 - 10 - x, bounds.width + 68);
+    const h = Math.min(720 - 10 - y, bounds.height + 52);
+    this.panel.fillStyle(PANEL_FILL, PANEL_ALPHA);
+    this.panel.fillRoundedRect(x, y, w, h, 18);
+    this.panel.lineStyle(2, PANEL_BORDER, 0.9);
+    this.panel.strokeRoundedRect(x, y, w, h, 18);
+    this.panel.fillStyle(0xffd54a, 0.5);
+    this.panel.fillRoundedRect(x + 24, y + 4, w - 48, 3, 1.5);
   }
 
   private addStatic(
@@ -533,6 +780,76 @@ export class Menu extends Scene {
     });
   }
 
+  private isInstalled(): boolean {
+    const standalone =
+      (window.navigator as Navigator & { standalone?: boolean }).standalone ===
+      true;
+    return (
+      window.matchMedia("(display-mode: standalone)").matches || standalone
+    );
+  }
+
+  private activateInstall() {
+    if (hasInstallPrompt()) {
+      void promptInstall();
+      return;
+    }
+    this.goto("install");
+  }
+
+  private shareGame() {
+    const url = window.location.href;
+    if (typeof navigator.share === "function") {
+      void navigator.share({ title: GAME_TITLE, url }).catch(() => {});
+      return;
+    }
+    void navigator.clipboard
+      ?.writeText(url)
+      .then(() => this.flashShare())
+      .catch(() => {});
+  }
+
+  private flashShare() {
+    const text = this.shareText;
+    if (!text) return;
+    text.setText(SHARE_COPIED);
+    this.time.delayedCall(SHARE_REVERT_MS, () => {
+      if (text.active) text.setText(SHARE_LABEL);
+    });
+  }
+
+  private openContact() {
+    window.open(CONTACT_URL, "_blank", "noopener");
+  }
+
+  // Horizontal row below the menu: reachable with up/down and left/right.
+  private addActionRow(x: number, y: number) {
+    const size = 22;
+    const defs: Item[] = [];
+    if (!this.isInstalled()) {
+      defs.push({
+        label: () => "INSTALL APP",
+        activate: () => this.activateInstall(),
+        icon: UI_ICONS.install,
+      });
+    }
+    const shareIndex = defs.length;
+    defs.push({
+      label: () => SHARE_LABEL,
+      activate: () => this.shareGame(),
+      icon: UI_ICONS.share,
+    });
+    defs.push({
+      label: () => "CONTACT",
+      activate: () => this.openContact(),
+      icon: UI_ICONS.contact,
+    });
+    const entries = defs.map((def) => this.addEntry(0, y, def, size, 0));
+    this.shareText = entries[shareIndex].text;
+    this.layoutEntries(x, y, entries, 28, 34);
+    this.rows.push(entries);
+  }
+
   private addLinkRow(x: number, y: number) {
     this.addLinkGroup(x, y, "Original DOS game:", [
       ["Wikipedia", "https://en.wikipedia.org/wiki/The_Last_Eichhof"],
@@ -557,28 +874,23 @@ export class Menu extends Scene {
   ) {
     const size = 18;
     const gap = 16;
-    const parts: GameObjects.Text[] = [
-      this.addStatic(0, y, prefix, size, DIM).setOrigin(0, 0.5),
-    ];
-    for (const [name, url] of links) {
-      const def: Item = {
-        label: () => name,
-        activate: () => window.open(url, "_blank", "noopener"),
-      };
-      const text = this.addStatic(0, y, name, size, DIM)
-        .setOrigin(0, 0.5)
-        .setInteractive({ useHandCursor: true });
-      const index = this.items.length;
-      text.on("pointerdown", () => this.activateItem(index));
-      this.items.push({ text, def });
-      parts.push(text);
-    }
-    const widths = parts.map((p) => p.width);
-    const total = widths.reduce((a, b) => a + b, 0) + gap * (parts.length - 1);
-    let cx = x - total / 2;
-    parts.forEach((part, i) => {
-      part.setPosition(cx, y);
-      cx += widths[i] + gap;
-    });
+    const prefixText = this.addStatic(0, y, prefix, size, DIM).setOrigin(
+      0,
+      0.5,
+    );
+    const entries = links.map(([name, url]) =>
+      this.addEntry(
+        0,
+        y,
+        {
+          label: () => name,
+          activate: () => window.open(url, "_blank", "noopener"),
+        },
+        size,
+        0,
+      ),
+    );
+    this.layoutEntries(x, y, [{ text: prefixText }, ...entries], gap, size + 8);
+    this.rows.push(entries);
   }
 }

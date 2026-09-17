@@ -2,8 +2,7 @@ import { type GameObjects, Geom, Input, Scene, type Types } from "phaser";
 import { getMusic, getSamples, getSfx } from "../audio";
 import { getLevel, LEVELS } from "../data/levels";
 import { getRun, MAX_SPEEDUPS, type Run, shipSpeed } from "../data/run";
-import { bgKey, skinKey } from "../data/skins";
-import { type GraphicsMode, loadSettings } from "../data/store";
+import { loadSettings } from "../data/store";
 import {
   canPlace,
   GRID,
@@ -40,7 +39,6 @@ type Mode = "shop" | "weapons" | "upgrades" | "sell" | "place";
 export class Shop extends Scene {
   private run!: Run;
   private mode: Mode = "shop";
-  private graphics: GraphicsMode = "modern";
   private select = 0;
   private items: { text: GameObjects.Text; def: Item }[] = [];
   private dynamic: GameObjects.GameObject[] = [];
@@ -73,23 +71,13 @@ export class Shop extends Scene {
 
   create() {
     this.run = getRun();
-    this.graphics = loadSettings().graphics;
     this.mode = "shop";
     this.select = 0;
     this.pending = null;
     this.ghost = null;
     this.ghostBox = null;
 
-    const modern = this.graphics === "modern";
-    this.add
-      .rectangle(0, 0, 960, 720, 0x05060d, modern ? 0 : 1)
-      .setOrigin(0)
-      .setDepth(-20);
-    this.add
-      .image(0, 0, bgKey(Math.min(this.run.level + 1, LEVELS.length)))
-      .setOrigin(0)
-      .setDepth(-21)
-      .setVisible(modern);
+    this.add.rectangle(0, 0, 960, 720, 0x05060d).setOrigin(0).setDepth(-20);
     this.add
       .text(480, 60, "SHOP", {
         fontFamily: "monospace",
@@ -309,7 +297,7 @@ export class Shop extends Scene {
       const y = startY + i * step;
       if (def.icon) {
         const icon = this.add
-          .image(206, y + 11, skinKey(def.icon, this.graphics))
+          .image(206, y + 11, def.icon)
           .setDepth(10)
           .setInteractive({ useHandCursor: true });
         icon.on("pointerdown", () => this.activateItem(i));
@@ -446,17 +434,13 @@ export class Shop extends Scene {
     for (const p of this.run.loadout) {
       const placed = WEAPON_BY_ID[p.defId];
       const icon = this.add
-        .image(
-          PLACE.x + p.dx,
-          PLACE.y + p.dy,
-          skinKey(`wpn-${placed.id}`, this.graphics),
-        )
+        .image(PLACE.x + p.dx, PLACE.y + p.dy, `wpn-${placed.id}`)
         .setDepth(6);
       this.dynamic.push(icon);
     }
 
     this.ghost = this.add
-      .image(this.ghostX, this.ghostY, skinKey(`wpn-${w.id}`, this.graphics))
+      .image(this.ghostX, this.ghostY, `wpn-${w.id}`)
       .setAlpha(0.6)
       .setDepth(7);
     this.dynamic.push(this.ghost);

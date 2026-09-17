@@ -26,13 +26,7 @@ import {
   type Run,
   shipSpeed,
 } from "../data/run";
-import { bgKey, skinKey } from "../data/skins";
-import {
-  DIFFICULTY,
-  type GraphicsMode,
-  loadSettings,
-  recordGameResult,
-} from "../data/store";
+import { DIFFICULTY, loadSettings, recordGameResult } from "../data/store";
 import {
   type Emitter,
   moneyForLevel,
@@ -104,7 +98,6 @@ type State = "shield" | "play" | "dead" | "win" | "gameover";
 export class Game extends Scene {
   private ship!: GameObjects.Sprite;
   private bg!: GameObjects.Rectangle;
-  private bgImage!: GameObjects.Image;
   private hud!: GameObjects.Graphics;
   private starsFar!: GameObjects.TileSprite;
   private starsNear!: GameObjects.TileSprite;
@@ -151,7 +144,6 @@ export class Game extends Scene {
   private nextCheckpoint = 0;
   private flashText!: GameObjects.Text;
   private flashTimer = 0;
-  private mode: GraphicsMode = "modern";
   private touch = false;
   private autoFire = false;
   private joystick: VirtualJoyStick | null = null;
@@ -166,7 +158,6 @@ export class Game extends Scene {
 
   create() {
     const settings = loadSettings();
-    this.mode = settings.graphics;
     this.autoFire = settings.autoFire;
     this.touch = resolveTouchControls(
       settings.controls,
@@ -176,38 +167,21 @@ export class Game extends Scene {
       .rectangle(0, 0, PLAY.w, PLAY.h, 0x05060d)
       .setOrigin(0)
       .setDepth(-20);
-    this.bgImage = this.add
-      .image(0, 0, bgKey(1))
-      .setOrigin(0)
-      .setDepth(-21)
-      .setVisible(this.mode === "modern");
     this.starsFar = this.add
-      .tileSprite(
-        PLAY.w / 2,
-        PLAY.h / 2,
-        PLAY.w,
-        PLAY.h,
-        skinKey("stars-far", this.mode),
-      )
+      .tileSprite(PLAY.w / 2, PLAY.h / 2, PLAY.w, PLAY.h, "stars-far")
       .setDepth(-10);
     this.starsNear = this.add
-      .tileSprite(
-        PLAY.w / 2,
-        PLAY.h / 2,
-        PLAY.w,
-        PLAY.h,
-        skinKey("stars-near", this.mode),
-      )
+      .tileSprite(PLAY.w / 2, PLAY.h / 2, PLAY.w, PLAY.h, "stars-near")
       .setDepth(-9)
       .setAlpha(0.7);
 
     this.ship = this.add
-      .sprite(PLAY.w / 2, BOTTOM - 70, skinKey("ship", this.mode))
+      .sprite(PLAY.w / 2, BOTTOM - 70, "ship")
       .setDepth(10)
-      .play(skinKey("ship", this.mode));
+      .play("ship");
 
     this.hud = this.add.graphics().setDepth(100);
-    this.drawHud(0x0a0a12);
+    this.drawHud();
 
     const style = {
       fontFamily: "monospace",
@@ -499,13 +473,9 @@ export class Game extends Scene {
     this.flashTimer = 0;
     this.flashText.setAlpha(0);
     this.bg.setFillStyle(level.bg);
-    this.bg.setVisible(this.mode !== "modern");
-    this.bgImage
-      .setTexture(bgKey(this.run.level))
-      .setVisible(this.mode === "modern");
     this.starsFar.setTint(level.starTint);
     this.starsNear.setTint(level.starTint);
-    this.drawHud(level.starTint);
+    this.drawHud();
     this.bossesLeft = this.countBosses(this.queue, 0);
     this.fieldOn = true;
     this.state = "shield";
@@ -565,7 +535,7 @@ export class Game extends Scene {
 
   private makeShot(x: number, y: number, tint: number, em: Emitter): Shot {
     const sprite = this.add
-      .image(x + em.ox, y + em.oy, skinKey("cork", this.mode))
+      .image(x + em.ox, y + em.oy, "cork")
       .setTint(tint)
       .setDepth(5);
     return {
@@ -692,7 +662,7 @@ export class Game extends Scene {
             this.spawnEnemyShot(e.sprite.x, e.sprite.y, ev.speed);
           }
         } else {
-          const texture = skinKey(ev.texture, this.mode);
+          const texture = ev.texture;
           e.sprite.setTexture(texture);
           if (this.anims.exists(texture)) e.sprite.play(texture);
         }
@@ -916,7 +886,7 @@ export class Game extends Scene {
   private spawnEnemy(kind: FoeKind, x: number, y: number, scheduled = true) {
     const spec = FOES[kind];
     const runner = new PathRunner(pathFor(kind), { x, y });
-    const texture = skinKey(spec.texture, this.mode);
+    const texture = spec.texture;
     const sprite = this.add
       .sprite(x, y, texture)
       .setDepth(spec.role === "boss" ? 2 : 1);
@@ -942,9 +912,7 @@ export class Game extends Scene {
     const dy = this.ship.y - y;
     const d = Math.max(Math.abs(dx), Math.abs(dy)) || 1;
     const v = speed * 60;
-    const sprite = this.add
-      .image(x, y, skinKey("pellet", this.mode))
-      .setDepth(4);
+    const sprite = this.add.image(x, y, "pellet").setDepth(4);
     getSfx().enemyShot();
     this.enemyShots.push({
       sprite,
@@ -1009,7 +977,7 @@ export class Game extends Scene {
   }
 
   private spawnExplosion(x: number, y: number) {
-    const key = skinKey("explosion", this.mode);
+    const key = "explosion";
     const sprite = this.add.sprite(x, y, key).setDepth(20).play(key);
     this.explosions.push({ sprite, age: 0, life: 0.5 });
   }
@@ -1042,7 +1010,7 @@ export class Game extends Scene {
     this.mounts = this.loadout
       .filter((m) => !m.weapon.starter)
       .map((m) => {
-        const key = skinKey(`wpn-${m.weapon.id}`, this.mode);
+        const key = `wpn-${m.weapon.id}`;
         const sprite = this.add
           .sprite(this.ship.x + m.dx, this.ship.y + m.dy, key)
           .setDepth(11);
@@ -1060,17 +1028,10 @@ export class Game extends Scene {
     }
   }
 
-  private drawHud(accent: number) {
+  private drawHud() {
     this.hud.clear();
-    if (this.mode === "modern") {
-      this.hud.fillStyle(0x0b0e1a, 0.82);
-      this.hud.fillRoundedRect(0, -16, PLAY.w, HUD_H + 16, 14);
-      this.hud.fillStyle(accent, 0.9);
-      this.hud.fillRect(0, HUD_H - 2, PLAY.w, 2);
-    } else {
-      this.hud.fillStyle(0x0a0a12, 0.9);
-      this.hud.fillRect(0, 0, PLAY.w, HUD_H);
-    }
+    this.hud.fillStyle(0x0a0a12, 0.9);
+    this.hud.fillRect(0, 0, PLAY.w, HUD_H);
   }
 }
 
