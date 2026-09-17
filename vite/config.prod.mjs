@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 const phasermsg = () => {
   return {
@@ -45,5 +46,42 @@ export default defineConfig({
   server: {
     port: 8080,
   },
-  plugins: [phasermsg()],
+  plugins: [
+    phasermsg(),
+    VitePWA({
+      registerType: "autoUpdate",
+      // Inject the registration script; avoids importing virtual:pwa-register.
+      injectRegister: "auto",
+      manifest: {
+        name: "The Last Eichhof",
+        short_name: "Eichhof",
+        description:
+          "Shoot corks from a beer bottle and blast waves of alcohol-themed enemies. A web remake of the 1993 MS-DOS classic.",
+        display: "standalone",
+        orientation: "landscape",
+        background_color: "#05060d",
+        theme_color: "#05060d",
+        categories: ["games"],
+        icons: [
+          { src: "icons/pwa-192x192.png", sizes: "192x192", type: "image/png" },
+          { src: "icons/pwa-512x512.png", sizes: "512x512", type: "image/png" },
+          {
+            src: "icons/maskable-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,png,ogg,webmanifest}"],
+        globIgnores: ["**/contact.html", "**/audition.html"],
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+        navigateFallback: "index.html",
+        cleanupOutdatedCaches: true,
+      },
+      // Dev keeps the plain server; test offline from the production build.
+      devOptions: { enabled: false },
+    }),
+  ],
 });
