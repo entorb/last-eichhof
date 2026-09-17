@@ -27,11 +27,22 @@ beforeEach(() => {
 
 describe("scene flow", () => {
   it("Menu START GAME creates a fresh run and starts Game", () => {
+    // A previous game's values must not leak into the next one.
+    const old = newRun();
+    old.money = 999;
+    old.score = 12345;
+    old.level = 4;
+    old.speedUps = 2;
+    old.loadout.push({ defId: "kanone", dx: 0, dy: 0 });
+
     const s = makeSwitcher();
     Flow.startNewGame(s);
     const run = getRun();
     expect(run.level).toBe(1);
     expect(run.score).toBe(0);
+    expect(run.money).toBe(0);
+    expect(run.speedUps).toBe(0);
+    expect(run.loadout).toEqual([{ defId: "lager", dx: 0, dy: 0 }]);
     expect(hasRun()).toBe(true);
     expect(s.calls).toEqual([["start", "Game", undefined]]);
   });

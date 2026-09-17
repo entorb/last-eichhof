@@ -6,32 +6,25 @@ export interface LevelDef {
   name: string;
   bg: number;
   starTint: number;
-  bossHp: number;
-  shieldBonus: number;
   bosses: number;
   checkpoints: number[];
-  scoreScale: number;
+  bonusScore: number;
+  bonusMoney: number;
   build(): Spawn[];
 }
 
 const BG = [0x05060d, 0x0a0512, 0x00120f, 0x140707, 0x0d0a00];
 const TINT = [0xffffff, 0xc9a6ff, 0x8affc1, 0xff9a8a, 0xffd54a];
-const SHIELD_BONUS = [0, 0, 1, 1, 2];
-// Level 1 is the "EASY START" tutorial: its end boss loops and spawns 13×, so
-// at the DOS per-boss score it alone would out-score every later level. Keep
-// the tutorial's kills at a fraction so it stays the low-stakes opener.
-const SCORE_SCALE = [0.3, 1, 1, 1, 1];
 
 export const LEVELS: LevelDef[] = ROSTERS.map((roster, i) => ({
   n: i + 1,
   name: roster.name,
   bg: BG[i],
   starTint: TINT[i],
-  bossHp: roster.bossHp,
-  shieldBonus: SHIELD_BONUS[i],
   bosses: roster.bosses,
   checkpoints: roster.checkpoints,
-  scoreScale: SCORE_SCALE[i],
+  bonusScore: roster.bonusScore,
+  bonusMoney: roster.bonusMoney,
   build: () => roster.spawns.map((s) => ({ ...s })),
 }));
 
@@ -71,14 +64,13 @@ export function runLevelsSelfCheck(): void {
   assert(getLevel(0).n === 1, "getLevel clamps low");
   assert(getLevel(99).n === 5, "getLevel clamps high");
 
-  const maxScore = (lvl: LevelDef) =>
-    lvl
-      .build()
-      .reduce(
-        (sum, s) =>
-          s.cmd ? sum : sum + Math.round(FOES[s.kind].score * lvl.scoreScale),
-        0,
-      );
-  const later = Math.min(...LEVELS.slice(1).map(maxScore));
-  assert(maxScore(LEVELS[0]) < later, "tutorial score below every later level");
+  // DOS `initlevel` adds the `.DSC` bonus score/money at level start.
+  for (const lvl of LEVELS) {
+    assert(lvl.bonusScore >= 0, `level ${lvl.n} bonus score`);
+    assert(lvl.bonusMoney >= 0, `level ${lvl.n} bonus money`);
+  }
+  assert(
+    LEVELS.some((lvl) => lvl.bonusScore > 0),
+    "some level grants bonus score",
+  );
 }

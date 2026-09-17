@@ -48,18 +48,19 @@ describe("levels", () => {
     }
   });
 
-  // The tutorial's end boss loops and spawns 13×, so without `scoreScale` its
-  // kill score alone would beat every later level.
-  it("keeps the tutorial's score below every later level", () => {
-    const maxScore = (lvl: (typeof LEVELS)[number]) =>
-      lvl
-        .build()
-        .reduce(
-          (sum, s) =>
-            s.cmd ? sum : sum + Math.round(FOES[s.kind].score * lvl.scoreScale),
-          0,
-        );
-    const later = Math.min(...LEVELS.slice(1).map(maxScore));
-    expect(maxScore(LEVELS[0])).toBeLessThan(later);
+  // The `.DSC` bonus is the DOS `initlevel` value (GAMEPLAY.C): it is added to
+  // score/money at level start and feeds the end-of-level money conversion.
+  it("carries the DOS .DSC bonus score and money", () => {
+    expect(LEVELS.map((l) => l.bonusScore)).toEqual([
+      0, 20000, 20000, 50000, 20000,
+    ]);
+    expect(LEVELS.map((l) => l.bonusMoney)).toEqual([400, 20, 560, 440, 0]);
+  });
+
+  // DOS adds the raw signed `foe.score`, so a boss can cost more than the
+  // chaff is worth. Keep the negative values instead of clamping them.
+  it("keeps negative boss scores", () => {
+    const bosses = Object.values(FOES).filter((f) => f.role === "boss");
+    expect(bosses.some((f) => f.score < 0)).toBe(true);
   });
 });

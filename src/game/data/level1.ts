@@ -336,7 +336,8 @@ export function runSelfCheck(): void {
   const kinds = Object.keys(FOES) as FoeKind[];
   assert(kinds.length > 0, "foes defined");
   for (const k of kinds) {
-    assert(FOES[k].score > 0, `score for ${k}`);
+    // DOS stores the raw signed score: a boss can be negative, chaff can be 0.
+    assert(Number.isFinite(FOES[k].score), `score for ${k}`);
     assert(FOES[k].texture.length > 0, `texture for ${k}`);
     const path = FOES[k].path ?? [];
     assert(path.length > 0, `path for ${k}`);
