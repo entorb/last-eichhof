@@ -12,19 +12,30 @@ body {
   overscroll-behavior: none;
 }
 
+/* No flexbox here: Phaser's autoCenter CENTER_BOTH does the centering.
+   100vh is the fallback; 100svh (small viewport = toolbars always expanded)
+   keeps the FIT canvas inside the visible area on iOS Safari, where 100vh is
+   the large viewport and would push the bottom behind the toolbar after a
+   portrait→landscape rotation. Avoid 100dvh + flex (stale height on Chrome
+   Android). iOS < 15.4 has no svh: main.ts `fitViewport()` patches it. */
 #app {
-  width: 100%;
+  position: relative;
+  width: 100vw;
   height: 100vh;
-  /* biome-ignore lint/suspicious/noDuplicateProperties: 100dvh override avoids mobile browser chrome jump */
-  height: 100dvh;
+  /* biome-ignore lint/suspicious/noDuplicateProperties: 100svh fallback overrides 100vh on browsers that support it */
+  height: 100svh;
   overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   touch-action: none;
 }
 
+#game-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 #app canvas {
+  display: block;
   touch-action: none;
 }
 
