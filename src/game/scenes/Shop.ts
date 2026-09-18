@@ -1,6 +1,8 @@
 import { type GameObjects, Geom, Input, Scene, type Types } from "phaser";
 import { getMusic, getSamples, getSfx } from "../audio";
 import { getLevel, LEVELS } from "../data/levels";
+import { at } from "../data/lookup";
+import { PLAY } from "../data/playfield";
 import { getRun, MAX_SPEEDUPS, type Run, shipSpeed } from "../data/run";
 import { loadSettings } from "../data/store";
 import {
@@ -11,16 +13,16 @@ import {
   snap,
   UPGRADES,
   type Upgrade,
-  WEAPON_BY_ID,
   WEAPONS,
   type Weapon,
+  weaponById,
   weaponStats,
 } from "../data/weapons";
 import * as Flow from "../flow";
 import { resolveTouchControls } from "../input/controls";
 import { TouchPad } from "../input/touchpad";
 
-const PLACE = { x: 480, y: 320, w: 360, h: 240 };
+const PLACE = { x: PLAY.cx, y: 320, w: 360, h: 240 };
 // DOS shop used a 4 px grid and a 4 px margin inside the placement area.
 const MARGIN = 12;
 const WHITE = "#ffffff";
@@ -77,9 +79,12 @@ export class Shop extends Scene {
     this.ghost = null;
     this.ghostBox = null;
 
-    this.add.rectangle(0, 0, 960, 720, 0x05060d).setOrigin(0).setDepth(-20);
     this.add
-      .text(480, 60, "SHOP", {
+      .rectangle(0, 0, PLAY.w, PLAY.h, 0x05060d)
+      .setOrigin(0)
+      .setDepth(-20);
+    this.add
+      .text(PLAY.cx, 60, "SHOP", {
         fontFamily: "monospace",
         fontSize: "48px",
         color: WHITE,
@@ -87,7 +92,7 @@ export class Shop extends Scene {
       .setOrigin(0.5)
       .setDepth(10);
     this.moneyText = this.add
-      .text(480, 120, "", {
+      .text(PLAY.cx, 120, "", {
         fontFamily: "monospace",
         fontSize: "28px",
         color: GOLD,
@@ -95,7 +100,7 @@ export class Shop extends Scene {
       .setOrigin(0.5)
       .setDepth(10);
     this.infoText = this.add
-      .text(480, 170, "", {
+      .text(PLAY.cx, 170, "", {
         fontFamily: "monospace",
         fontSize: "20px",
         color: DIM,
@@ -104,7 +109,7 @@ export class Shop extends Scene {
       .setOrigin(0.5)
       .setDepth(10);
     this.message = this.add
-      .text(480, 660, "", {
+      .text(PLAY.cx, 660, "", {
         fontFamily: "monospace",
         fontSize: "24px",
         color: "#ff8080",
@@ -194,7 +199,7 @@ export class Shop extends Scene {
     }
     if (confirm) {
       getSfx().uiConfirm();
-      this.items[this.select].def.activate();
+      this.items[this.select]?.def.activate();
     }
   }
 
@@ -382,7 +387,7 @@ export class Shop extends Scene {
 
   private sellItems(): Item[] {
     const items: Item[] = this.run.loadout.map((p, i) => {
-      const w = WEAPON_BY_ID[p.defId];
+      const w = weaponById(p.defId);
       return {
         label: () => `${w.name.padEnd(16, ".")} +${sellValue(w.cost)}`,
         activate: () => this.sell(i),
@@ -432,7 +437,7 @@ export class Shop extends Scene {
     this.dynamic.push(box);
 
     for (const p of this.run.loadout) {
-      const placed = WEAPON_BY_ID[p.defId];
+      const placed = weaponById(p.defId);
       const icon = this.add
         .image(PLACE.x + p.dx, PLACE.y + p.dy, `wpn-${placed.id}`)
         .setDepth(6);
@@ -476,7 +481,7 @@ export class Shop extends Scene {
 
     const hint = this.add
       .text(
-        480,
+        PLAY.cx,
         PLACE.y + PLACE.h / 2 + 40,
         this.touch
           ? "DRAG MOVE   OK PLACE   ESC CANCEL"
@@ -564,7 +569,7 @@ export class Shop extends Scene {
       getSfx().hit();
       return;
     }
-    const w = WEAPON_BY_ID[this.run.loadout[index].defId];
+    const w = weaponById(at(this.run.loadout, index).defId);
     this.run.money += sellValue(w.cost);
     this.run.loadout.splice(index, 1);
     this.select = 0;

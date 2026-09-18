@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  FOES,
-  type FoeKind,
-  PathRunner,
-  pathFor,
-  runSelfCheck,
-} from "./level1";
+import { FOES, type FoeKind } from "./foeRosters";
+import { PathRunner, pathFor, runPathSelfCheck } from "./path";
 
 const KINDS = Object.keys(FOES) as FoeKind[];
 
@@ -110,8 +105,8 @@ describe("PathRunner", () => {
   });
 });
 
-describe("runSelfCheck", () => {
+describe("runPathSelfCheck", () => {
   it("passes", () => {
-    expect(() => runSelfCheck()).not.toThrow();
+    expect(() => runPathSelfCheck()).not.toThrow();
   });
 });

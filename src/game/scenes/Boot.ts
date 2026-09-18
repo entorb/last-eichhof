@@ -1,4 +1,4 @@
-import { type GameObjects, Scene } from "phaser";
+import { type GameObjects, Math as PhaserMath, Scene } from "phaser";
 import {
   generateUiIcons,
   runUiIconsSelfCheck,
@@ -11,8 +11,9 @@ import {
   runSoundsSelfCheck,
 } from "../audio";
 import { SPRITE_SHEETS } from "../data/enemySprites";
-import { FOES, runSelfCheck } from "../data/level1";
+import { FOES } from "../data/foeRosters";
 import { runLevelsSelfCheck } from "../data/levels";
+import { runPathSelfCheck } from "../data/path";
 import { runRunSelfCheck } from "../data/run";
 import { SOUNDS } from "../data/sounds";
 import { runStatsSelfCheck } from "../data/stats";
@@ -71,42 +72,47 @@ export class Boot extends Scene {
         repeat: sheet.key === "explosion" ? 0 : -1,
       });
     }
-    for (const sheet of SPRITE_SHEETS) {
-      if (!this.textures.exists(sheet.key)) {
-        throw new Error(`selfcheck: missing texture ${sheet.key}`);
+    // Dev-only: vitest already runs the self-checks, so production skips them.
+    if (import.meta.env.DEV) {
+      for (const sheet of SPRITE_SHEETS) {
+        if (!this.textures.exists(sheet.key)) {
+          throw new Error(`selfcheck: missing texture ${sheet.key}`);
+        }
       }
-    }
-    for (const extra of ["cork", "pellet", "stars-far", "stars-near"]) {
-      if (!this.textures.exists(extra)) {
-        throw new Error(`selfcheck: missing texture ${extra}`);
+      for (const extra of ["cork", "pellet", "stars-far", "stars-near"]) {
+        if (!this.textures.exists(extra)) {
+          throw new Error(`selfcheck: missing texture ${extra}`);
+        }
       }
-    }
-    for (const icon of UI_ICON_KEYS) {
-      if (!this.textures.exists(icon)) {
-        throw new Error(`selfcheck: missing icon ${icon}`);
+      for (const icon of UI_ICON_KEYS) {
+        if (!this.textures.exists(icon)) {
+          throw new Error(`selfcheck: missing icon ${icon}`);
+        }
       }
-    }
-    for (const kind of Object.keys(FOES) as (keyof typeof FOES)[]) {
-      if (!this.textures.exists(FOES[kind].texture)) {
-        throw new Error(`selfcheck: missing foe texture ${FOES[kind].texture}`);
+      for (const kind of Object.keys(FOES) as (keyof typeof FOES)[]) {
+        if (!this.textures.exists(FOES[kind].texture)) {
+          throw new Error(
+            `selfcheck: missing foe texture ${FOES[kind].texture}`,
+          );
+        }
       }
-    }
-    for (const w of WEAPONS) {
-      if (!this.textures.exists(`wpn-${w.id}`)) {
-        throw new Error(`selfcheck: missing icon wpn-${w.id}`);
+      for (const w of WEAPONS) {
+        if (!this.textures.exists(`wpn-${w.id}`)) {
+          throw new Error(`selfcheck: missing icon wpn-${w.id}`);
+        }
       }
-    }
 
-    runSelfCheck();
-    runLevelsSelfCheck();
-    runRunSelfCheck();
-    runStoreSelfCheck();
-    runStatsSelfCheck();
-    runWeaponsSelfCheck();
-    runControlsSelfCheck();
-    runUiIconsSelfCheck();
-    runAudioSelfCheck();
-    runSoundsSelfCheck();
+      runPathSelfCheck();
+      runLevelsSelfCheck();
+      runRunSelfCheck();
+      runStoreSelfCheck();
+      runStatsSelfCheck();
+      runWeaponsSelfCheck();
+      runControlsSelfCheck();
+      runUiIconsSelfCheck();
+      runAudioSelfCheck();
+      runSoundsSelfCheck();
+    }
     initAudio(this.sound);
     this.sound.volume = 0.8;
     getMusic().setEnabled(loadSettings().music);
@@ -167,15 +173,11 @@ export class Boot extends Scene {
     maxA: number,
   ) {
     const g = this.make.graphics({ x: 0, y: 0 });
+    // Seeded by key, so every boot draws the same stars (stable snapshots).
+    const rnd = new PhaserMath.RandomDataGenerator([key]);
     for (let i = 0; i < count; i++) {
-      const a = minA + Math.random() * (maxA - minA);
-      g.fillStyle(0xffffff, a);
-      g.fillRect(
-        Math.floor(Math.random() * 256),
-        Math.floor(Math.random() * 256),
-        size,
-        size,
-      );
+      g.fillStyle(0xffffff, rnd.realInRange(minA, maxA));
+      g.fillRect(rnd.between(0, 255), rnd.between(0, 255), size, size);
     }
     g.generateTexture(key, 256, 256);
     g.destroy();

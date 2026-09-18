@@ -9,16 +9,11 @@ import {
 } from "phaser";
 import VirtualJoyStick from "phaser4-rex-plugins/plugins/virtualjoystick.js";
 import { getMusic, getSamples, getSfx } from "../audio";
-import {
-  clamp,
-  FOES,
-  type FoeKind,
-  PathRunner,
-  PLAY,
-  pathFor,
-  type Spawn,
-} from "../data/level1";
+import { FOES, type FoeKind, type RosterSpawn } from "../data/foeRosters";
 import { getLevel, LEVELS } from "../data/levels";
+import { clamp } from "../data/math";
+import { PathRunner, pathFor } from "../data/path";
+import { PLAY } from "../data/playfield";
 import {
   endRun,
   getRun,
@@ -32,8 +27,8 @@ import {
   type Emitter,
   moneyForLevel,
   type ShotKind,
-  WEAPON_BY_ID,
   type Weapon,
+  weaponById,
 } from "../data/weapons";
 import * as Flow from "../flow";
 import {
@@ -135,7 +130,7 @@ export class Game extends Scene {
   private resultRecorded = false;
   private levelTime = 0;
   private spawnIndex = 0;
-  private queue: Spawn[] = [];
+  private queue: RosterSpawn[] = [];
   private bossesLeft = 1;
   private fieldOn = true;
   private checkpoints: number[] = [];
@@ -447,15 +442,21 @@ export class Game extends Scene {
     }
   }
 
-  private resetLevel() {
+  /** Drop every live shot and enemy (and, on a full reset, the explosions). */
+  private clearEntities(withExplosions = false) {
     for (const s of this.shots) s.sprite.destroy();
     for (const e of this.enemies) e.sprite.destroy();
     for (const b of this.enemyShots) b.sprite.destroy();
-    for (const x of this.explosions) x.sprite.destroy();
     this.shots = [];
     this.enemies = [];
     this.enemyShots = [];
+    if (!withExplosions) return;
+    for (const x of this.explosions) x.sprite.destroy();
     this.explosions = [];
+  }
+
+  private resetLevel() {
+    this.clearEntities(true);
 
     const level = getLevel(this.run.level);
     // DOS `initlevel`: the `.DSC` bonus score/money is added at level start,
@@ -483,7 +484,7 @@ export class Game extends Scene {
     this.state = "shield";
     this.stateTimer = SHIELD_MS;
     this.loadout = this.run.loadout.map((p) => ({
-      weapon: WEAPON_BY_ID[p.defId],
+      weapon: weaponById(p.defId),
       dx: p.dx,
       dy: p.dy,
     }));
@@ -521,10 +522,12 @@ export class Game extends Scene {
 
   private fire(dt: number) {
     if (!this.autoFire && !this.keyFire.isDown && !this.touch) return;
-    for (let i = 0; i < this.loadout.length; i++) {
-      this.cooldowns[i] -= dt;
-      if (this.cooldowns[i] > 0) continue;
-      const { weapon, dx, dy } = this.loadout[i];
+    for (const [i, { weapon, dx, dy }] of this.loadout.entries()) {
+      const left = (this.cooldowns[i] ?? 0) - dt;
+      if (left > 0) {
+        this.cooldowns[i] = left;
+        continue;
+      }
       this.cooldowns[i] = weapon.period / 1000;
       getSfx().laser();
       for (const em of weapon.emitters) {
@@ -578,13 +581,8 @@ export class Game extends Scene {
       if (s.kind === "reflect") this.bounce(s);
     }
     this.shots = this.shots.filter((s) => {
-      const off =
-        s.sprite.y < TOP - 30 ||
-        s.sprite.y > BOTTOM + 30 ||
-        s.sprite.x < -30 ||
-        s.sprite.x > PLAY.w + 30;
       const expired = s.kind !== "straight" && s.age > s.life;
-      if (off || expired) {
+      if (isOffscreen(s.sprite) || expired) {
         s.sprite.destroy();
         return false;
       }
@@ -646,6 +644,7 @@ export class Game extends Scene {
     const count = this.enemies.length;
     for (let i = 0; i < count; i++) {
       const e = this.enemies[i];
+      if (!e) continue;
       e.runner.update(dt * scale, target);
       e.sprite.setPosition(e.runner.pos.x, e.runner.pos.y);
       for (const ev of e.runner.events) {
@@ -820,7 +819,8 @@ export class Game extends Scene {
 
   private checkCheckpoints() {
     if (this.nextCheckpoint >= this.checkpoints.length) return;
-    if (this.levelTime < this.checkpoints[this.nextCheckpoint]) return;
+    const next = this.checkpoints[this.nextCheckpoint];
+    if (next === undefined || this.levelTime < next) return;
     this.nextCheckpoint++;
     this.flashText.setText("CHECKPOINT").setAlpha(1);
     this.flashTimer = 1000;
@@ -829,61 +829,48 @@ export class Game extends Scene {
 
   private rewindToCheckpoint() {
     if (this.checkpoints.length === 0) return;
-    const t =
-      this.nextCheckpoint > 0 ? this.checkpoints[this.nextCheckpoint - 1] : 0;
+    const t = this.checkpoints[this.nextCheckpoint - 1] ?? 0;
     // Every checkpoint sits before the first boss, so any live boss has a
     // spawn time > t and will be re-spawned; count future bosses only.
     const future = this.countBosses(this.queue, t);
     this.levelTime = t;
     const idx = this.queue.findIndex((s) => s.at > t);
     this.spawnIndex = idx === -1 ? this.queue.length : idx;
-    for (const s of this.shots) s.sprite.destroy();
-    for (const e of this.enemies) e.sprite.destroy();
-    for (const b of this.enemyShots) b.sprite.destroy();
-    this.shots = [];
-    this.enemies = [];
-    this.enemyShots = [];
+    this.clearEntities();
     this.bossesLeft = future;
     this.fieldOn = true;
   }
 
-  private countBosses(queue: Spawn[], after: number): number {
+  private countBosses(
+    queue: RosterSpawn[],
+    from: number,
+    inclusive = false,
+  ): number {
     return queue.filter(
-      (s) => !s.cmd && FOES[s.kind].role === "boss" && s.at > after,
+      (s) =>
+        !s.cmd &&
+        FOES[s.kind].role === "boss" &&
+        (inclusive ? s.at >= from : s.at > from),
     ).length;
   }
 
   private jumpToNextCheckpoint() {
     if (this.state !== "play") return;
     const boss = this.queue.find((s) => !s.cmd && FOES[s.kind].role === "boss");
-    let t: number | null = null;
-    if (this.nextCheckpoint < this.checkpoints.length) {
-      t = this.checkpoints[this.nextCheckpoint];
-    } else if (boss) {
-      t = boss.at;
-    }
-    if (t === null || t <= this.levelTime) return;
+    const t = this.checkpoints[this.nextCheckpoint] ?? boss?.at;
+    if (t === undefined || t <= this.levelTime) return;
     this.levelTime = t;
     const idx = this.queue.findIndex((s) => s.at >= t);
     this.spawnIndex = idx === -1 ? this.queue.length : idx;
-    for (const s of this.shots) s.sprite.destroy();
-    for (const e of this.enemies) e.sprite.destroy();
-    for (const b of this.enemyShots) b.sprite.destroy();
-    this.shots = [];
-    this.enemies = [];
-    this.enemyShots = [];
-    this.bossesLeft = this.queue.filter(
-      (s) => !s.cmd && FOES[s.kind].role === "boss" && s.at >= t,
-    ).length;
+    this.clearEntities();
+    this.bossesLeft = this.countBosses(this.queue, t, true);
     this.fieldOn = true;
   }
 
   private spawnWaves() {
-    while (
-      this.spawnIndex < this.queue.length &&
-      this.queue[this.spawnIndex].at <= this.levelTime
-    ) {
-      const s = this.queue[this.spawnIndex++];
+    let s = this.queue[this.spawnIndex];
+    while (s && s.at <= this.levelTime) {
+      this.spawnIndex++;
       if (s.cmd === "fieldOn") {
         this.fieldOn = true;
       } else if (s.cmd === "fieldOff") {
@@ -895,6 +882,7 @@ export class Game extends Scene {
         // top; shift spawns below the web HUD or top-hovering foes hide.
         this.spawnEnemy(s.kind, s.x, s.y + TOP);
       }
+      s = this.queue[this.spawnIndex];
     }
   }
 
@@ -941,12 +929,7 @@ export class Game extends Scene {
       b.sprite.y += b.vy * dt;
     }
     this.enemyShots = this.enemyShots.filter((b) => {
-      const off =
-        b.sprite.y < TOP - 30 ||
-        b.sprite.y > BOTTOM + 30 ||
-        b.sprite.x < -30 ||
-        b.sprite.x > PLAY.w + 30;
-      if (off) {
+      if (isOffscreen(b.sprite)) {
         b.sprite.destroy();
         return false;
       }
@@ -1049,6 +1032,11 @@ export class Game extends Scene {
     this.hud.fillStyle(0x0a0a12, 0.9);
     this.hud.fillRect(0, 0, PLAY.w, HUD_H);
   }
+}
+
+/** True once a sprite has left the play area by the shot cull margin. */
+function isOffscreen(s: { x: number; y: number }): boolean {
+  return s.y < TOP - 30 || s.y > BOTTOM + 30 || s.x < -30 || s.x > PLAY.w + 30;
 }
 
 function overlap(
