@@ -153,8 +153,15 @@ export function recordGameResult(result: GameResult): GameResult[] {
   return next;
 }
 
+// Menu labels call this on every cursor move; skip re-parsing an unchanged blob.
+let settingsMemo: { raw: string | null; settings: Settings } | null = null;
+
 export function loadSettings(): Settings {
-  return parseSettings(safeGet(SETTINGS_KEY));
+  const raw = safeGet(SETTINGS_KEY);
+  if (settingsMemo?.raw !== raw) {
+    settingsMemo = { raw, settings: parseSettings(raw) };
+  }
+  return { ...settingsMemo.settings };
 }
 
 export function saveSettings(settings: Settings): void {
@@ -179,7 +186,7 @@ export function runStoreSelfCheck(): void {
 
   const byPoints = sortResults(list, "points");
   assert(
-    byPoints[0].score === 30 && byPoints[1].score === 20,
+    byPoints[0]?.score === 30 && byPoints[1]?.score === 20,
     "points sort order",
   );
   assert(byPoints.length === 3, "points sort keeps all results");

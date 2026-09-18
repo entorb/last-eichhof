@@ -70,7 +70,7 @@ export function runRunSelfCheck(): void {
   assert(fresh.speedUps === 0, "new run speedups reset");
   assert(!fresh.godMode, "new run god mode resets");
   assert(fresh.loadout.length === 1, "new run loadout resets");
-  assert(fresh.loadout[0].defId === "lager", "new run keeps starter");
+  assert(fresh.loadout[0]?.defId === "lager", "new run keeps starter");
   endRun();
   assert(!hasRun(), "endRun clears the run");
 }
