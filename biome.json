@@ -7,7 +7,11 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!public/assets/sounds/audition.html"]
+    "includes": [
+      "**",
+      "!public/assets/sounds/audition.html",
+      "!public/assets/enemies/contact.html"
+    ]
   },
   "formatter": {
     "enabled": true,
