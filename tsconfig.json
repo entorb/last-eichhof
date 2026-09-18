@@ -12,11 +12,11 @@
     "moduleDetection": "force",
     "noEmit": true,
     /* Linting */
-    "strictPropertyInitialization": false,
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
     "noUncheckedSideEffectImports": true
   },
   "include": ["src"]
