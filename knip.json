@@ -2,5 +2,5 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["src/main.ts", "vite/config.*.mjs", "scripts/*.mjs"],
   "ignoreExportsUsedInFile": true,
-  "ignoreDependencies": ["@biomejs/biome", "playwright-core"]
+  "ignoreDependencies": ["playwright-core"]
 }
