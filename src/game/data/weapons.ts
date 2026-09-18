@@ -305,9 +305,15 @@ export const WEAPONS: Weapon[] = [
   },
 ];
 
-export const WEAPON_BY_ID: Record<string, Weapon> = Object.fromEntries(
+const WEAPON_BY_ID: Record<string, Weapon> = Object.fromEntries(
   WEAPONS.map((w) => [w.id, w]),
 );
+
+export function weaponById(id: string): Weapon {
+  const w = WEAPON_BY_ID[id];
+  if (!w) throw new Error(`unknown weapon ${id}`);
+  return w;
+}
 
 export type UpgradeKind = "speedup" | "extralife";
 
@@ -373,8 +379,8 @@ export function weaponStats(w: Weapon): { dir: string; dmg: number } {
 }
 
 export function placementsOverlap(a: Placement, b: Placement): boolean {
-  const wa = WEAPON_BY_ID[a.defId];
-  const wb = WEAPON_BY_ID[b.defId];
+  const wa = weaponById(a.defId);
+  const wb = weaponById(b.defId);
   return (
     Math.abs(a.dx - b.dx) < (wa.w + wb.w) / 2 &&
     Math.abs(a.dy - b.dy) < (wa.h + wb.h) / 2
@@ -405,9 +411,9 @@ export function runWeaponsSelfCheck(): void {
   assert(sellValue(2000) === 1500, "sell 75%");
   assert(sellValue(601) === 450, "sell floors");
 
-  assert(WEAPON_BY_ID.can33.cost === 240, "dos cost can33");
-  assert(WEAPON_BY_ID.kanone.cost === 540, "dos cost kanone");
-  assert(UPGRADES[1].cost === 30, "dos cost extra life");
+  assert(weaponById("can33").cost === 240, "dos cost can33");
+  assert(weaponById("kanone").cost === 540, "dos cost kanone");
+  assert(UPGRADES[1]?.cost === 30, "dos cost extra life");
 
   assert(snap(0) === 0, "snap origin");
   assert(snap(12) === 12, "snap on grid");
@@ -423,7 +429,10 @@ export function runWeaponsSelfCheck(): void {
   assert(canPlace([a], c), "canPlace accepts clear");
   assert(canPlace([a], a, 0), "canPlace ignores self");
 
-  assert(WEAPONS[0].starter && WEAPONS[0].cost === 0, "starter weapon");
+  assert(
+    WEAPONS[0]?.starter === true && WEAPONS[0].cost === 0,
+    "starter weapon",
+  );
   assert(
     WEAPONS.every((w) => w.emitters.length > 0 && w.period > 0),
     "weapons complete",
@@ -466,15 +475,17 @@ export function runWeaponsSelfCheck(): void {
     assert(id in WEAPON_BY_ID, `has weapon ${id}`);
   }
   assert(
-    WEAPON_BY_ID.pokal.emitters.some((e) => (e.release?.shots.length ?? 0) > 0),
+    weaponById("pokal").emitters.some(
+      (e) => (e.release?.shots.length ?? 0) > 0,
+    ),
     "pokal releases sub-shots",
   );
   assert(
-    WEAPON_BY_ID.pony.emitters.some((e) => e.release),
+    weaponById("pony").emitters.some((e) => e.release),
     "pony reflector releases sub-shot",
   );
   assert(
-    WEAPON_BY_ID.barbara.emitters.some((e) => e.release),
+    weaponById("barbara").emitters.some((e) => e.release),
     "barbara v-shot releases sub-shot",
   );
   assert(
@@ -497,7 +508,7 @@ export function runWeaponsSelfCheck(): void {
   };
   for (const [id, [dir, dmg]] of Object.entries(stats)) {
     assert(id in WEAPON_BY_ID, `stats weapon ${id}`);
-    const got = weaponStats(WEAPON_BY_ID[id]);
+    const got = weaponStats(weaponById(id));
     assert(
       got.dir === dir && got.dmg === dmg,
       `stats ${id}: got ${got.dir}/${got.dmg}, want ${dir}/${dmg}`,

@@ -121,7 +121,12 @@ export class Synth {
     const len = Math.floor(ctx.sampleRate * 0.5);
     const buf = ctx.createBuffer(1, len, ctx.sampleRate);
     const data = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    // getRandomValues takes at most 65536 bytes per call: fill in chunks.
+    const bits = new Uint16Array(len);
+    for (let i = 0; i < len; i += 32768) {
+      crypto.getRandomValues(bits.subarray(i, i + 32768));
+    }
+    for (const [i, v] of bits.entries()) data[i] = v / 32768 - 1;
     return buf;
   }
 

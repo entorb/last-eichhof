@@ -252,7 +252,7 @@ const drawers: Record<string, Draw> = {
       [6, 12],
       [18, 5],
       [18, 19],
-    ]) {
+    ] as const) {
       ctx.beginPath();
       ctx.arc(x, y, 3.4, 0, Math.PI * 2);
       ctx.fill();
@@ -330,7 +330,7 @@ const drawers: Record<string, Draw> = {
       [6, 14, 0xffd54a],
       [12, 17, 0x4da3ff],
       [17, 15, 0x7ee787],
-    ]) {
+    ] as const) {
       ctx.fillStyle = css(color);
       ctx.beginPath();
       ctx.arc(x, y, 1.8, 0, Math.PI * 2);

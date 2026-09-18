@@ -1,6 +1,8 @@
 import { GameObjects, Geom, Input, Scale, Scene, type Types } from "phaser";
 import { UI_ICONS } from "../art/uiIcons";
 import { getMusic, getSamples, getSfx } from "../audio";
+import { at } from "../data/lookup";
+import { PLAY } from "../data/playfield";
 import { readGlobalGames, reportGameStart } from "../data/stats";
 import {
   clampScroll,
@@ -125,15 +127,15 @@ export class Menu extends Scene {
   create() {
     const overlayAlpha = this.pauseMode ? 0.72 : 1;
     this.add
-      .rectangle(0, 0, 960, 720, 0x05060d, overlayAlpha)
+      .rectangle(0, 0, PLAY.w, PLAY.h, 0x05060d, overlayAlpha)
       .setOrigin(0)
       .setDepth(-20);
     this.starsFar = this.add
-      .tileSprite(480, 360, 960, 720, "stars-far")
+      .tileSprite(PLAY.cx, PLAY.cy, PLAY.w, PLAY.h, "stars-far")
       .setDepth(-10)
       .setVisible(!this.pauseMode);
     this.starsNear = this.add
-      .tileSprite(480, 360, 960, 720, "stars-near")
+      .tileSprite(PLAY.cx, PLAY.cy, PLAY.w, PLAY.h, "stars-near")
       .setDepth(-9)
       .setAlpha(0.7)
       .setVisible(!this.pauseMode);
@@ -248,7 +250,7 @@ export class Menu extends Scene {
     const next = Math.max(0, Math.min(this.rows.length - 1, this.row + dir));
     if (next === this.row) return;
     this.row = next;
-    this.col = Math.min(this.col, this.rows[this.row].length - 1);
+    this.col = Math.min(this.col, at(this.rows, this.row).length - 1);
     getSfx().uiMove();
     this.refresh();
   }
@@ -256,7 +258,7 @@ export class Menu extends Scene {
   private moveCol(dir: number) {
     const next = Math.max(
       0,
-      Math.min(this.rows[this.row].length - 1, this.col + dir),
+      Math.min(at(this.rows, this.row).length - 1, this.col + dir),
     );
     if (next === this.col) return;
     this.col = next;
@@ -283,7 +285,7 @@ export class Menu extends Scene {
     this.highlight = this.add.graphics().setDepth(9);
     this.dynamic.push(this.highlight);
 
-    this.title = this.addStatic(480, 110, "THE LAST EICHHOF", 58, GOLD)
+    this.title = this.addStatic(PLAY.cx, 110, "THE LAST EICHHOF", 58, GOLD)
       .setOrigin(0.5)
       .setShadow(0, 0, "#ff9d2e", 12);
 
@@ -298,8 +300,8 @@ export class Menu extends Scene {
       : null;
 
     if (this.mode === "menu") {
-      this.addStatic(480, 162, "Remake by Torben", 22, DIM).setOrigin(0.5);
-      this.addDivider(480, 196, 460);
+      this.addStatic(PLAY.cx, 162, "Remake by Torben", 22, DIM).setOrigin(0.5);
+      this.addDivider(PLAY.cx, 196, 460);
       const defs: Item[] = [
         {
           label: () => "START GAME",
@@ -329,20 +331,20 @@ export class Menu extends Scene {
       ];
       if (fullscreenEntry) defs.splice(2, 0, fullscreenEntry);
       this.addItems(defs, 246, 58);
-      this.addDivider(480, 528, 460);
-      this.addActionRow(480, 562);
+      this.addDivider(PLAY.cx, 528, 460);
+      this.addActionRow(PLAY.cx, 562);
       this.statsText = this.addStatic(
-        480,
+        PLAY.cx,
         606,
         this.globalGamesLabel(),
         20,
         DIM,
       ).setOrigin(0.5);
-      this.addLinkRow(480, 644);
+      this.addLinkRow(PLAY.cx, 644);
       this.loadGlobalGames();
     } else if (this.mode === "options") {
-      this.addStatic(480, 205, "OPTIONS", 34, WHITE).setOrigin(0.5);
-      this.addDivider(480, 240, 360);
+      this.addStatic(PLAY.cx, 205, "OPTIONS", 34, WHITE).setOrigin(0.5);
+      this.addDivider(PLAY.cx, 240, 360);
       const defs: Item[] = [
         {
           label: () => `AUTO-FIRE: ${loadSettings().autoFire ? "ON" : "OFF"}`,
@@ -364,26 +366,26 @@ export class Menu extends Scene {
       ];
       this.addItems(defs, 300);
     } else if (this.mode === "install") {
-      this.addStatic(480, 205, "INSTALL AS APP", 34, WHITE).setOrigin(0.5);
-      this.addDivider(480, 240, 360);
+      this.addStatic(PLAY.cx, 205, "INSTALL AS APP", 34, WHITE).setOrigin(0.5);
+      this.addDivider(PLAY.cx, 240, 360);
       this.addStatic(
-        480,
+        PLAY.cx,
         300,
         "Install this game on your device:",
         22,
         DIM,
       ).setOrigin(0.5);
-      this.addStatic(480, 366, "Android:", 22, GOLD).setOrigin(0.5);
+      this.addStatic(PLAY.cx, 366, "Android:", 22, GOLD).setOrigin(0.5);
       this.addStatic(
-        480,
+        PLAY.cx,
         402,
         'Menu (3 dots) → "Add to Home screen"',
         22,
         WHITE,
       ).setOrigin(0.5);
-      this.addStatic(480, 466, "iPhone:", 22, GOLD).setOrigin(0.5);
+      this.addStatic(PLAY.cx, 466, "iPhone:", 22, GOLD).setOrigin(0.5);
       this.addStatic(
-        480,
+        PLAY.cx,
         502,
         'Share icon → "Add to Home Screen"',
         22,
@@ -400,8 +402,8 @@ export class Menu extends Scene {
         580,
       );
     } else if (this.mode === "pause") {
-      this.addStatic(480, 205, "PAUSED", 34, WHITE).setOrigin(0.5);
-      this.addDivider(480, 240, 360);
+      this.addStatic(PLAY.cx, 205, "PAUSED", 34, WHITE).setOrigin(0.5);
+      this.addDivider(PLAY.cx, 240, 360);
       const defs: Item[] = [
         {
           label: () => "RESUME",
@@ -446,12 +448,12 @@ export class Menu extends Scene {
     const iconW = defs.some((d) => d.icon) ? ICON_SIZE + ICON_GAP : 0;
     const maxText = Math.max(...placed.map((p) => p.entry.text.width));
     const block = iconW + maxText;
-    const left = 480 - block / 2;
+    const left = PLAY.cx - block / 2;
     for (const { y, entry } of placed) {
       entry.text.setOrigin(0, 0.5);
       entry.icon?.setPosition(left + ICON_SIZE / 2, y);
       entry.text.setPosition(left + iconW, y);
-      entry.hit?.setPosition(480, y).setSize(block + 90, 46);
+      entry.hit?.setPosition(PLAY.cx, y).setSize(block + 90, 46);
       this.rows.push([entry]);
     }
   }
@@ -501,7 +503,7 @@ export class Menu extends Scene {
     const r = this.rows.findIndex((row) => row.includes(entry));
     if (r < 0) return;
     this.row = r;
-    this.col = this.rows[r].indexOf(entry);
+    this.col = at(this.rows, r).indexOf(entry);
     getSfx().uiConfirm();
     this.refresh();
     entry.def.activate();
@@ -546,8 +548,11 @@ export class Menu extends Scene {
       text.on("pointerdown", () => this.selectSort(sort));
       this.scoreTabs.push({ text, sort });
     }
-    this.scoreList = this.addStatic(480, 250, "", 22, WHITE).setOrigin(0.5, 0);
-    this.scoreFoot = this.addStatic(480, 660, "", 20, DIM).setOrigin(0.5);
+    this.scoreList = this.addStatic(PLAY.cx, 250, "", 22, WHITE).setOrigin(
+      0.5,
+      0,
+    );
+    this.scoreFoot = this.addStatic(PLAY.cx, 660, "", 20, DIM).setOrigin(0.5);
     this.scoreFoot.setInteractive({ useHandCursor: true });
     this.scoreFoot.on("pointerdown", () => {
       getSfx().uiConfirm();
@@ -562,11 +567,12 @@ export class Menu extends Scene {
     const gap = 40;
     const widths = this.scoreTabs.map((t) => t.text.width);
     const total = widths.reduce((a, b) => a + b, 0) + gap * (widths.length - 1);
-    let cx = 480 - total / 2;
-    this.scoreTabs.forEach((tab, i) => {
-      tab.text.setPosition(cx + widths[i] / 2, 200);
-      cx += widths[i] + gap;
-    });
+    let cx = PLAY.cx - total / 2;
+    for (const tab of this.scoreTabs) {
+      const w = tab.text.width;
+      tab.text.setPosition(cx + w / 2, 200);
+      cx += w + gap;
+    }
   }
 
   private selectSort(sort: ResultSort) {
@@ -650,10 +656,10 @@ export class Menu extends Scene {
   private cycleDifficulty(dir: number) {
     const settings = loadSettings();
     const idx = DIFFICULTY_ORDER.indexOf(settings.difficulty);
-    const next =
-      DIFFICULTY_ORDER[
-        (idx + dir + DIFFICULTY_ORDER.length) % DIFFICULTY_ORDER.length
-      ];
+    const next = at(
+      DIFFICULTY_ORDER,
+      (idx + dir + DIFFICULTY_ORDER.length) % DIFFICULTY_ORDER.length,
+    );
     saveSettings({ ...settings, difficulty: next });
     this.refresh();
   }
@@ -743,8 +749,8 @@ export class Menu extends Scene {
     if (!bounds) return;
     const x = Math.max(10, bounds.x - 34);
     const y = Math.max(10, bounds.y - 26);
-    const w = Math.min(960 - 10 - x, bounds.width + 68);
-    const h = Math.min(720 - 10 - y, bounds.height + 52);
+    const w = Math.min(PLAY.w - 10 - x, bounds.width + 68);
+    const h = Math.min(PLAY.h - 10 - y, bounds.height + 52);
     this.panel.fillStyle(PANEL_FILL, PANEL_ALPHA);
     this.panel.fillRoundedRect(x, y, w, h, 18);
     this.panel.lineStyle(2, PANEL_BORDER, 0.9);
@@ -851,7 +857,7 @@ export class Menu extends Scene {
       icon: UI_ICONS.contact,
     });
     const entries = defs.map((def) => this.addEntry(0, y, def, size, 0));
-    this.shareText = entries[shareIndex].text;
+    this.shareText = at(entries, shareIndex).text;
     this.layoutEntries(x, y, entries, 28, 34);
     this.rows.push(entries);
   }

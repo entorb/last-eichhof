@@ -1,4 +1,5 @@
 import { AUTO, Game, Scale, type Types } from "phaser";
+import { PLAY } from "./data/playfield";
 import { Boot } from "./scenes/Boot";
 import { Game as MainGame } from "./scenes/Game";
 import { Menu } from "./scenes/Menu";
@@ -8,8 +9,8 @@ import { Shop } from "./scenes/Shop";
 // https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
 const config: Types.Core.GameConfig = {
   type: AUTO,
-  width: 960,
-  height: 720,
+  width: PLAY.w,
+  height: PLAY.h,
   parent: "game-container",
   backgroundColor: "#05060d",
   fullscreenTarget: "app",

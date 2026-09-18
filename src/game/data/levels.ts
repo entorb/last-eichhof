@@ -1,5 +1,6 @@
-import { ROSTERS } from "./foeRosters";
-import { FOES, PLAY, type Spawn } from "./level1";
+import { FOES, ROSTERS, type RosterSpawn } from "./foeRosters";
+import { at } from "./lookup";
+import { PLAY } from "./playfield";
 
 export interface LevelDef {
   n: number;
@@ -10,7 +11,7 @@ export interface LevelDef {
   checkpoints: number[];
   bonusScore: number;
   bonusMoney: number;
-  build(): Spawn[];
+  build(): RosterSpawn[];
 }
 
 const BG = [0x05060d, 0x0a0512, 0x00120f, 0x140707, 0x0d0a00];
@@ -19,8 +20,8 @@ const TINT = [0xffffff, 0xc9a6ff, 0x8affc1, 0xff9a8a, 0xffd54a];
 export const LEVELS: LevelDef[] = ROSTERS.map((roster, i) => ({
   n: i + 1,
   name: roster.name,
-  bg: BG[i],
-  starTint: TINT[i],
+  bg: at(BG, i),
+  starTint: at(TINT, i),
   bosses: roster.bosses,
   checkpoints: roster.checkpoints,
   bonusScore: roster.bonusScore,
@@ -30,7 +31,7 @@ export const LEVELS: LevelDef[] = ROSTERS.map((roster, i) => ({
 
 export function getLevel(n: number): LevelDef {
   const idx = Math.max(0, Math.min(LEVELS.length - 1, n - 1));
-  return LEVELS[idx];
+  return at(LEVELS, idx);
 }
 
 export function runLevelsSelfCheck(): void {
@@ -38,17 +39,19 @@ export function runLevelsSelfCheck(): void {
     if (!cond) throw new Error(`selfcheck: ${msg}`);
   };
   assert(LEVELS.length === 5, "five levels");
+  assert(BG.length === LEVELS.length, "one bg per level");
+  assert(TINT.length === LEVELS.length, "one star tint per level");
   LEVELS.forEach((lvl, i) => {
     assert(lvl.n === i + 1, `level ${i + 1} number`);
     const spawns = lvl.build();
     assert(spawns.length > 0, `level ${i + 1} has spawns`);
     for (let j = 1; j < spawns.length; j++) {
-      assert(spawns[j - 1].at <= spawns[j].at, `level ${i + 1} sorted`);
+      assert(at(spawns, j - 1).at <= at(spawns, j).at, `level ${i + 1} sorted`);
     }
     const bosses = spawns.filter((s) => !s.cmd && FOES[s.kind].role === "boss");
     assert(bosses.length === lvl.bosses, `level ${i + 1} boss count`);
     assert(lvl.bosses >= 1, `level ${i + 1} has bosses`);
-    const bossAt = bosses[0].at;
+    const bossAt = at(bosses, 0).at;
     let prevCp = -1;
     for (const cp of lvl.checkpoints) {
       assert(cp > prevCp, `level ${i + 1} checkpoints sorted`);
