@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FOES, type FoeKind } from "./level1";
+import { FOES, type FoeKind } from "./foeRosters";
 
 const ROLES = new Set(["chaff", "miniboss", "boss"]);
 

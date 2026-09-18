@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FOES } from "./level1";
+import { FOES } from "./foeRosters";
 import { LEVELS, runLevelsSelfCheck } from "./levels";
 
 describe("levels", () => {

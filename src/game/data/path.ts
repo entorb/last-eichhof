@@ -1,9 +1,5 @@
-import { FOES, type FoeKind, type RosterSpawn } from "./foeRosters";
-
-export type { FoeKind };
-export { FOES };
-
-export const PLAY = { w: 960, h: 720, hud: 48 };
+import { FOES, type FoeKind } from "./foeRosters";
+import { at } from "./lookup";
 
 export type Vec = { x: number; y: number };
 
@@ -189,8 +185,6 @@ export class PathRunner {
   }
 }
 
-export type Spawn = RosterSpawn;
-
 function weave(speed: number): PathStep[] {
   return [
     { t: "go", dx: 0, dy: 150, speed },
@@ -260,14 +254,10 @@ export function pathFor(kind: FoeKind): PathStep[] {
   if (spec.role === "boss") return BOSS_PATH;
   if (spec.invincible || spec.transparent) return EXIT_PATH;
   if (spec.role === "miniboss") return MINIBOSS_PATH;
-  return CHAFF_PATHS[hash(kind) % CHAFF_PATHS.length];
+  return at(CHAFF_PATHS, hash(kind) % CHAFF_PATHS.length);
 }
 
-export function clamp(v: number, min: number, max: number): number {
-  return Math.min(Math.max(v, min), max);
-}
-
-export function runSelfCheck(): void {
+export function runPathSelfCheck(): void {
   const assert = (cond: boolean, msg: string) => {
     if (!cond) throw new Error(`selfcheck: ${msg}`);
   };
@@ -324,14 +314,8 @@ export function runSelfCheck(): void {
   );
   cmds.update(0.01);
   assert(cmds.events.length === 1, `one event got ${cmds.events.length}`);
-  assert(
-    cmds.events[0].t === "sprite" && cmds.events[0].texture === "explosion",
-    "sprite event",
-  );
-
-  assert(clamp(5, 0, 10) === 5, "clamp mid");
-  assert(clamp(-5, 0, 10) === 0, "clamp low");
-  assert(clamp(15, 0, 10) === 10, "clamp high");
+  const ev = cmds.events[0];
+  assert(ev?.t === "sprite" && ev.texture === "explosion", "sprite event");
 
   const kinds = Object.keys(FOES) as FoeKind[];
   assert(kinds.length > 0, "foes defined");
@@ -363,7 +347,7 @@ export function runSelfCheck(): void {
       { t: "go", dx: 10, dy: 0, speed: 100 },
       { t: "mark" },
       { t: "shot", speed: 6 },
-      { t: "release", kind: kinds[0], x: 3, y: -3 },
+      { t: "release", kind: at(kinds, 0), x: 3, y: -3 },
       { t: "loop" },
     ],
     { x: 0, y: 0 },
