@@ -12,7 +12,7 @@ import { encodePng } from "./lib/png.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DAT = resolve(ROOT, "original_game/beer_exe/BEER.DAT");
-const XMODEC = resolve(ROOT, "original_game/beer_src/XMODEC.C");
+const XMODEC = resolve(ROOT, "original_game/beer_src/beersrc/XMODEC.C");
 const MAP = resolve(ROOT, "scripts/enemy-map.json");
 const OUT_DIR = resolve(ROOT, "public/assets/enemies");
 const SHEETS_OUT = resolve(ROOT, "src/game/data/enemySprites.ts");
@@ -477,6 +477,9 @@ for (let level = 0; level < LEVELS; level++) {
       role,
       invincible: (foe.flags & 0x02) !== 0 || undefined,
       transparent: (foe.flags & 0x04) !== 0 || undefined,
+      // DOS `FOE_STOPCOUNT`: the attack counter (`frameinc`) freezes while the
+      // foe lives, so `play()` pauses the whole attack table until it dies.
+      stopcount: (foe.flags & 0x08) !== 0 || undefined,
       path: buildFoePath(foe, level, foebuf, foes, valid),
     };
     kinds.set(kind, spec);
@@ -608,6 +611,7 @@ export interface FoeSpec {
 	role: FoeRole;
 	invincible?: boolean;
 	transparent?: boolean;
+	stopcount?: boolean;
 	path?: FoePathStep[];
 }
 
