@@ -60,6 +60,18 @@ export class Boot extends Scene {
     this.makeWeaponIcons();
     generateUiIcons(this);
 
+    this.createAnims();
+
+    // Dev-only: vitest already runs the self-checks, so production skips them.
+    if (import.meta.env.DEV) this.devSelfChecks();
+
+    initAudio(this.sound);
+    this.sound.volume = 0.8;
+    getMusic().setEnabled(loadSettings().music);
+    this.scene.start("Menu");
+  }
+
+  private createAnims() {
     for (const sheet of SPRITE_SHEETS) {
       if (sheet.frames <= 1) continue;
       this.anims.create({
@@ -72,51 +84,47 @@ export class Boot extends Scene {
         repeat: sheet.key === "explosion" ? 0 : -1,
       });
     }
-    // Dev-only: vitest already runs the self-checks, so production skips them.
-    if (import.meta.env.DEV) {
-      for (const sheet of SPRITE_SHEETS) {
-        if (!this.textures.exists(sheet.key)) {
-          throw new Error(`selfcheck: missing texture ${sheet.key}`);
-        }
-      }
-      for (const extra of ["cork", "pellet", "stars-far", "stars-near"]) {
-        if (!this.textures.exists(extra)) {
-          throw new Error(`selfcheck: missing texture ${extra}`);
-        }
-      }
-      for (const icon of UI_ICON_KEYS) {
-        if (!this.textures.exists(icon)) {
-          throw new Error(`selfcheck: missing icon ${icon}`);
-        }
-      }
-      for (const kind of Object.keys(FOES) as (keyof typeof FOES)[]) {
-        if (!this.textures.exists(FOES[kind].texture)) {
-          throw new Error(
-            `selfcheck: missing foe texture ${FOES[kind].texture}`,
-          );
-        }
-      }
-      for (const w of WEAPONS) {
-        if (!this.textures.exists(`wpn-${w.id}`)) {
-          throw new Error(`selfcheck: missing icon wpn-${w.id}`);
-        }
-      }
+  }
 
-      runPathSelfCheck();
-      runLevelsSelfCheck();
-      runRunSelfCheck();
-      runStoreSelfCheck();
-      runStatsSelfCheck();
-      runWeaponsSelfCheck();
-      runControlsSelfCheck();
-      runUiIconsSelfCheck();
-      runAudioSelfCheck();
-      runSoundsSelfCheck();
+  private devSelfChecks() {
+    this.assertTextures(
+      SPRITE_SHEETS.map((s) => s.key),
+      "texture",
+    );
+    this.assertTextures(
+      ["cork", "pellet", "stars-far", "stars-near"],
+      "texture",
+    );
+    this.assertTextures(UI_ICON_KEYS, "icon");
+    this.assertTextures(
+      (Object.keys(FOES) as (keyof typeof FOES)[]).map(
+        (kind) => FOES[kind].texture,
+      ),
+      "foe texture",
+    );
+    this.assertTextures(
+      WEAPONS.map((w) => `wpn-${w.id}`),
+      "icon",
+    );
+
+    runPathSelfCheck();
+    runLevelsSelfCheck();
+    runRunSelfCheck();
+    runStoreSelfCheck();
+    runStatsSelfCheck();
+    runWeaponsSelfCheck();
+    runControlsSelfCheck();
+    runUiIconsSelfCheck();
+    runAudioSelfCheck();
+    runSoundsSelfCheck();
+  }
+
+  private assertTextures(keys: readonly string[], what: string) {
+    for (const key of keys) {
+      if (!this.textures.exists(key)) {
+        throw new Error(`selfcheck: missing ${what} ${key}`);
+      }
     }
-    initAudio(this.sound);
-    this.sound.volume = 0.8;
-    getMusic().setEnabled(loadSettings().music);
-    this.scene.start("Menu");
   }
 
   private makeSprite(
