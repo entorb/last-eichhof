@@ -183,6 +183,32 @@ export class Menu extends Scene {
     this.starsNear.tilePositionY -= 110 * dt;
     this.animateTitle(time / 1000);
 
+    const input = this.readInput();
+    if (this.mode === "scores") {
+      this.updateScores(
+        input.down,
+        input.up,
+        input.left,
+        input.right,
+        input.confirm,
+        input.back,
+      );
+      return;
+    }
+
+    if (input.down) this.moveRow(1);
+    if (input.up) this.moveRow(-1);
+    const current = this.rows[this.row]?.[this.col]?.def;
+    if (!current) return;
+    this.handleCycleOrMove(current, input);
+    this.handleBack(input);
+    if (input.confirm) {
+      getSfx().uiConfirm();
+      current.activate();
+    }
+  }
+
+  private readInput() {
     const pad = this.pad?.poll();
     const confirm =
       Input.Keyboard.JustDown(this.keyEnter) ||
@@ -205,37 +231,33 @@ export class Menu extends Scene {
       Input.Keyboard.JustDown(this.cursors.right) ||
       Input.Keyboard.JustDown(this.keyD) ||
       pad?.right === true;
+    return { confirm, back, down, up, left, right };
+  }
 
-    if (this.mode === "scores") {
-      this.updateScores(down, up, left, right, confirm, back);
-      return;
-    }
-
-    if (down) this.moveRow(1);
-    if (up) this.moveRow(-1);
-    const current = this.rows[this.row]?.[this.col]?.def;
-    if (!current) return;
+  private handleCycleOrMove(
+    current: Item,
+    input: { left: boolean; right: boolean },
+  ) {
     if (current.cycle) {
-      if (left) current.cycle(-1);
-      if (right) current.cycle(1);
-      if (left || right) getSfx().uiMove();
+      if (input.left) current.cycle(-1);
+      if (input.right) current.cycle(1);
+      if (input.left || input.right) getSfx().uiMove();
     } else {
-      if (left) this.moveCol(-1);
-      if (right) this.moveCol(1);
+      if (input.left) this.moveCol(-1);
+      if (input.right) this.moveCol(1);
     }
-    if (back && (this.mode === "options" || this.mode === "install")) {
+  }
+
+  private handleBack(input: { back: boolean }) {
+    if (!input.back) return;
+    if (this.mode === "options" || this.mode === "install") {
       getSfx().uiConfirm();
       this.goto("menu");
       return;
     }
-    if (back && this.mode === "pause") {
+    if (this.mode === "pause") {
       getSfx().uiConfirm();
       this.resumeGame();
-      return;
-    }
-    if (confirm) {
-      getSfx().uiConfirm();
-      current.activate();
     }
   }
 
@@ -837,25 +859,29 @@ export class Menu extends Scene {
   // Horizontal row below the menu: reachable with up/down and left/right.
   private addActionRow(x: number, y: number) {
     const size = 22;
-    const defs: Item[] = [];
-    if (!this.isInstalled()) {
-      defs.push({
-        label: () => "INSTALL APP",
-        activate: () => this.activateInstall(),
-        icon: UI_ICONS.install,
-      });
-    }
-    const shareIndex = defs.length;
-    defs.push({
-      label: () => SHARE_LABEL,
-      activate: () => this.shareGame(),
-      icon: UI_ICONS.share,
-    });
-    defs.push({
-      label: () => "CONTACT",
-      activate: () => this.openContact(),
-      icon: UI_ICONS.contact,
-    });
+    const installed = this.isInstalled();
+    const defs: Item[] = [
+      ...(installed
+        ? []
+        : [
+            {
+              label: () => "INSTALL APP",
+              activate: () => this.activateInstall(),
+              icon: UI_ICONS.install,
+            },
+          ]),
+      {
+        label: () => SHARE_LABEL,
+        activate: () => this.shareGame(),
+        icon: UI_ICONS.share,
+      },
+      {
+        label: () => "CONTACT",
+        activate: () => this.openContact(),
+        icon: UI_ICONS.contact,
+      },
+    ];
+    const shareIndex = installed ? 1 : 0;
     const entries = defs.map((def) => this.addEntry(0, y, def, size, 0));
     this.shareText = at(entries, shareIndex).text;
     this.layoutEntries(x, y, entries, 28, 34);
@@ -872,7 +898,7 @@ export class Menu extends Scene {
       ],
     ]);
     this.addLinkGroup(x, y + 28, "This game's", [
-      ["Code", "https://github.com/entorb/last-eichhof"],
+      ["SourceCode", "https://github.com/entorb/last-eichhof"],
     ]);
   }
 
