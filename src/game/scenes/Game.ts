@@ -12,7 +12,7 @@ import { getMusic, getSamples, getSfx } from "../audio";
 import { FOES, type FoeKind, type RosterSpawn } from "../data/foeRosters";
 import { getLevel, LEVELS } from "../data/levels";
 import { clamp } from "../data/math";
-import { PathRunner, pathFor } from "../data/path";
+import { type PathEvent, PathRunner, pathFor } from "../data/path";
 import { PLAY } from "../data/playfield";
 import {
   endRun,
@@ -374,72 +374,79 @@ export class Game extends Scene {
     this.starsFar.tilePositionY -= 40 * (this.fieldOn ? 1 : 0) * dt;
     this.starsNear.tilePositionY -= 110 * (this.fieldOn ? 1 : 0) * dt;
 
-    if (this.joystick) {
-      const active = this.state === "shield" || this.state === "play";
-      if (this.joystick.visible !== active) this.joystick.setVisible(active);
-      if (!active) this.joyRing?.setAlpha(0);
-    }
-    if (this.pauseButton) {
-      const active =
-        this.state === "play" ||
-        this.state === "shield" ||
-        this.state === "dead";
-      if (this.pauseButton.visible !== active) {
-        this.pauseButton.setVisible(active);
-      }
-    }
-
-    if (this.flashTimer > 0) {
-      this.flashTimer -= delta;
-      this.flashText.setAlpha(Math.max(0, this.flashTimer / 1000));
-    }
-
+    this.updateJoystick();
+    this.updatePauseButton();
+    this.updateFlash(delta);
     this.updateExplosions(dt);
 
-    if (this.state === "shield") {
-      this.stateTimer -= delta;
-      this.moveShip(dt);
-      this.ship.setAlpha(Math.floor(_time / 100) % 2 ? 0.35 : 1);
-      if (this.stateTimer <= 0) {
-        this.state = "play";
-        this.ship.setAlpha(1);
-        this.hint.setVisible(false);
-      }
-      return;
-    }
-
-    if (this.state === "play") {
-      this.levelTime += dt;
-      this.moveShip(dt);
-      this.fire(dt);
-      this.updateShots(dt);
-      this.updateEnemies(dt);
-      this.updateEnemyShots(dt);
-      this.collide();
-      this.spawnWaves();
-      this.checkCheckpoints();
-      this.checkWin();
-      return;
-    }
-
-    if (this.state === "dead") {
-      this.updateShots(dt);
-      this.updateEnemies(dt);
-      this.updateEnemyShots(dt);
-      this.stateTimer -= delta;
-      if (this.stateTimer <= 0) this.afterDeath();
-      return;
-    }
-
-    if (this.state === "win") {
-      this.stateTimer -= delta;
-      if (this.stateTimer <= 0) Flow.finishLevel(this.scene, this.run.level);
-      return;
-    }
+    if (this.state === "shield") return this.updateShield(_time, delta, dt);
+    if (this.state === "play") return this.updatePlay(dt);
+    if (this.state === "dead") return this.updateDead(delta, dt);
+    if (this.state === "win") return this.updateWin(delta);
 
     if (Input.Keyboard.JustDown(this.keyFire)) {
       Flow.endGame(this.scene);
     }
+  }
+
+  private updateJoystick() {
+    if (!this.joystick) return;
+    const active = this.state === "shield" || this.state === "play";
+    if (this.joystick.visible !== active) this.joystick.setVisible(active);
+    if (!active) this.joyRing?.setAlpha(0);
+  }
+
+  private updatePauseButton() {
+    if (!this.pauseButton) return;
+    const active =
+      this.state === "play" || this.state === "shield" || this.state === "dead";
+    if (this.pauseButton.visible !== active) {
+      this.pauseButton.setVisible(active);
+    }
+  }
+
+  private updateFlash(delta: number) {
+    if (this.flashTimer > 0) {
+      this.flashTimer -= delta;
+      this.flashText.setAlpha(Math.max(0, this.flashTimer / 1000));
+    }
+  }
+
+  private updateShield(_time: number, delta: number, dt: number) {
+    this.stateTimer -= delta;
+    this.moveShip(dt);
+    this.ship.setAlpha(Math.floor(_time / 100) % 2 ? 0.35 : 1);
+    if (this.stateTimer <= 0) {
+      this.state = "play";
+      this.ship.setAlpha(1);
+      this.hint.setVisible(false);
+    }
+  }
+
+  private updatePlay(dt: number) {
+    this.levelTime += dt;
+    this.moveShip(dt);
+    this.fire(dt);
+    this.updateShots(dt);
+    this.updateEnemies(dt);
+    this.updateEnemyShots(dt);
+    this.collide();
+    this.spawnWaves();
+    this.checkCheckpoints();
+    this.checkWin();
+  }
+
+  private updateDead(delta: number, dt: number) {
+    this.updateShots(dt);
+    this.updateEnemies(dt);
+    this.updateEnemyShots(dt);
+    this.stateTimer -= delta;
+    if (this.stateTimer <= 0) this.afterDeath();
+  }
+
+  private updateWin(delta: number) {
+    this.stateTimer -= delta;
+    if (this.stateTimer <= 0) Flow.finishLevel(this.scene, this.run.level);
   }
 
   /** Drop every live shot and enemy (and, on a full reset, the explosions). */
@@ -647,62 +654,75 @@ export class Game extends Scene {
       if (!e) continue;
       e.runner.update(dt * scale, target);
       e.sprite.setPosition(e.runner.pos.x, e.runner.pos.y);
-      for (const ev of e.runner.events) {
-        if (ev.t === "spawn") {
-          this.spawnEnemy(ev.kind, e.sprite.x, e.sprite.y, false);
-        } else if (ev.t === "release") {
-          // DOS `FOERELEASEFOE` chains (a released minion may release its own).
-          // Cap concurrent foes like DOS `MAXFOES` so a looping foe cannot
-          // spawn without bound.
-          if (this.state === "play" && this.enemies.length < MAX_FOES) {
-            this.spawnEnemy(
-              ev.kind,
-              e.sprite.x + ev.x,
-              e.sprite.y + ev.y,
-              false,
-            );
-          }
-        } else if (ev.t === "shot") {
-          if (this.state === "play") {
-            this.spawnEnemyShot(e.sprite.x, e.sprite.y, ev.speed);
-          }
-        } else {
-          const texture = ev.texture;
-          e.sprite.setTexture(texture);
-          if (this.anims.exists(texture)) e.sprite.play(texture);
-        }
-      }
-      e.runner.events.length = 0;
+      this.applyEvents(e);
       if (e.hitFlash > 0) {
         e.hitFlash -= dt;
         if (e.hitFlash <= 0) e.sprite.clearTint();
       }
     }
-    this.enemies = this.enemies.filter((e) => {
-      const role = FOES[e.kind].role;
-      // DOS destroys a foe when its path hits END. A boss that reaches END
-      // without being killed still counts as defeated so `checkWin` can fire.
-      if (e.runner.done) {
-        e.sprite.destroy();
-        if (e.scheduled && role === "boss") {
-          this.bossesLeft = Math.max(0, this.bossesLeft - 1);
+    this.enemies = this.enemies.filter((e) => !this.expireEnemy(e));
+  }
+
+  private applyEvents(e: Enemy) {
+    for (const ev of e.runner.events) this.applyEvent(e, ev);
+    e.runner.events.length = 0;
+  }
+
+  private applyEvent(e: Enemy, ev: PathEvent) {
+    switch (ev.t) {
+      case "spawn":
+        this.spawnEnemy(ev.kind, e.sprite.x, e.sprite.y, false);
+        break;
+      case "release":
+        // DOS `FOERELEASEFOE` chains (a released minion may release its own).
+        // Cap concurrent foes like DOS `MAXFOES` so a looping foe cannot
+        // spawn without bound.
+        this.spawnFoe(e, ev.kind, ev.x, ev.y);
+        break;
+      case "shot":
+        if (this.state === "play") {
+          this.spawnEnemyShot(e.sprite.x, e.sprite.y, ev.speed);
         }
-        return false;
+        break;
+      default: {
+        const texture = ev.texture;
+        e.sprite.setTexture(texture);
+        if (this.anims.exists(texture)) e.sprite.play(texture);
       }
-      const p = e.runner.pos;
-      // Match the spawn envelope asserted in levels.ts so foes that start
-      // off-screen (e.g. level 2 x=-186) are not culled before entering.
-      const gone =
-        p.y > BOTTOM + 120 ||
-        p.y < TOP - 400 ||
-        p.x < -PLAY.w ||
-        p.x > PLAY.w * 2;
-      if (gone && role !== "boss") {
-        e.sprite.destroy();
-        return false;
+    }
+  }
+
+  private spawnFoe(e: Enemy, kind: FoeKind, x: number, y: number) {
+    if (this.state === "play" && this.enemies.length < MAX_FOES) {
+      this.spawnEnemy(kind, e.sprite.x + x, e.sprite.y + y, false);
+    }
+  }
+
+  /** True once a foe is gone: path finished, or off-screen (non-boss). */
+  private expireEnemy(e: Enemy): boolean {
+    const role = FOES[e.kind].role;
+    // DOS destroys a foe when its path hits END. A boss that reaches END
+    // without being killed still counts as defeated so `checkWin` can fire.
+    if (e.runner.done) {
+      e.sprite.destroy();
+      if (e.scheduled && role === "boss") {
+        this.bossesLeft = Math.max(0, this.bossesLeft - 1);
       }
       return true;
-    });
+    }
+    const p = e.runner.pos;
+    // Match the spawn envelope asserted in levels.ts so foes that start
+    // off-screen (e.g. level 2 x=-186) are not culled before entering.
+    const gone =
+      p.y > BOTTOM + 120 ||
+      p.y < TOP - 400 ||
+      p.x < -PLAY.w ||
+      p.x > PLAY.w * 2;
+    if (gone && role !== "boss") {
+      e.sprite.destroy();
+      return true;
+    }
+    return false;
   }
 
   private collide() {
@@ -710,62 +730,83 @@ export class Game extends Scene {
     const deadEnemies = new Set<Enemy>();
     const deadEnemyShots = new Set<EnemyShot>();
     for (const shot of this.shots) {
+      this.collideShotVsEnemyShots(shot, deadShots, deadEnemyShots);
       if (deadShots.has(shot)) continue;
-      for (const b of this.enemyShots) {
-        if (deadEnemyShots.has(b) || !overlap(shot.sprite, b.sprite)) continue;
-        deadShots.add(shot);
-        deadEnemyShots.add(b);
-        break;
-      }
-      if (deadShots.has(shot)) continue;
-      for (const e of this.enemies) {
-        if (deadEnemies.has(e) || !overlap(shot.sprite, e.sprite)) continue;
-        const spec = FOES[e.kind];
-        if (spec.transparent) continue;
-        if (spec.invincible) {
-          // DOS `foehit`: an invincible foe kills the shot but is unharmed.
-          deadShots.add(shot);
-          break;
-        }
-        // DOS `foehit`: `shot.power -= foe.shield; foe.shield -= shot.power`.
-        // A shot with power left over pierces and can hit further foes.
-        const dmg = this.run.godMode ? 1e9 : shot.power;
-        shot.power -= e.shield;
-        e.shield -= dmg;
-        if (e.shield <= 0) {
-          deadEnemies.add(e);
-          this.killEnemy(e);
-        } else {
-          e.hitFlash = 0.08;
-          e.sprite.setTint(0xffffff).setTintMode(TintModes.FILL);
-        }
-        if (shot.power <= 0) {
-          deadShots.add(shot);
-          break;
-        }
-      }
+      this.collideShotVsEnemies(shot, deadShots, deadEnemies);
     }
     if (this.state === "play") {
-      for (const e of this.enemies) {
-        if (!deadEnemies.has(e) && overlap(this.ship, e.sprite)) {
-          this.playerHit();
-          break;
-        }
-      }
-      if (this.state === "play") {
-        for (const b of this.enemyShots) {
-          if (deadEnemyShots.has(b) || !overlap(this.ship, b.sprite)) continue;
-          deadEnemyShots.add(b);
-          this.playerHit();
-          break;
-        }
-      }
+      this.collideShipVsEnemies(deadEnemies);
+      if (this.state === "play") this.collideShipVsEnemyShots(deadEnemyShots);
     }
     for (const s of deadShots) s.sprite.destroy();
     for (const b of deadEnemyShots) b.sprite.destroy();
     this.shots = this.shots.filter((s) => !deadShots.has(s));
     this.enemyShots = this.enemyShots.filter((b) => !deadEnemyShots.has(b));
     this.enemies = this.enemies.filter((e) => !deadEnemies.has(e));
+  }
+
+  private collideShotVsEnemyShots(
+    shot: Shot,
+    deadShots: Set<Shot>,
+    deadEnemyShots: Set<EnemyShot>,
+  ) {
+    for (const b of this.enemyShots) {
+      if (deadEnemyShots.has(b) || !overlap(shot.sprite, b.sprite)) continue;
+      deadShots.add(shot);
+      deadEnemyShots.add(b);
+      break;
+    }
+  }
+
+  private collideShotVsEnemies(
+    shot: Shot,
+    deadShots: Set<Shot>,
+    deadEnemies: Set<Enemy>,
+  ) {
+    for (const e of this.enemies) {
+      if (deadEnemies.has(e) || !overlap(shot.sprite, e.sprite)) continue;
+      const spec = FOES[e.kind];
+      if (spec.transparent) continue;
+      if (spec.invincible) {
+        // DOS `foehit`: an invincible foe kills the shot but is unharmed.
+        deadShots.add(shot);
+        break;
+      }
+      // DOS `foehit`: `shot.power -= foe.shield; foe.shield -= shot.power`.
+      // A shot with power left over pierces and can hit further foes.
+      const dmg = this.run.godMode ? 1e9 : shot.power;
+      shot.power -= e.shield;
+      e.shield -= dmg;
+      if (e.shield <= 0) {
+        deadEnemies.add(e);
+        this.killEnemy(e);
+      } else {
+        e.hitFlash = 0.08;
+        e.sprite.setTint(0xffffff).setTintMode(TintModes.FILL);
+      }
+      if (shot.power <= 0) {
+        deadShots.add(shot);
+        break;
+      }
+    }
+  }
+
+  private collideShipVsEnemies(deadEnemies: Set<Enemy>) {
+    for (const e of this.enemies) {
+      if (!deadEnemies.has(e) && overlap(this.ship, e.sprite)) {
+        this.playerHit();
+        break;
+      }
+    }
+  }
+
+  private collideShipVsEnemyShots(deadEnemyShots: Set<EnemyShot>) {
+    for (const b of this.enemyShots) {
+      if (deadEnemyShots.has(b) || !overlap(this.ship, b.sprite)) continue;
+      deadEnemyShots.add(b);
+      this.playerHit();
+      break;
+    }
   }
 
   private killEnemy(e: Enemy) {
