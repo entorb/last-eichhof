@@ -414,9 +414,13 @@ export class Game extends Scene {
 
   private updateShield(_time: number, delta: number, dt: number) {
     this.stateTimer -= delta;
-    this.moveShip(dt);
+    // DOS `play()` runs the attack table and `fire()` for the whole
+    // `SHIELD_CTIME`, so the world keeps moving and the player keeps shooting
+    // while the ship is invincible. `collide()` skips the ship-vs-foe checks
+    // outside `state === "play"`, so the shield still protects the ship.
+    this.updatePlay(dt);
     this.ship.setAlpha(Math.floor(_time / 100) % 2 ? 0.35 : 1);
-    if (this.stateTimer <= 0) {
+    if (this.stateTimer <= 0 && this.state === "shield") {
       this.state = "play";
       this.ship.setAlpha(1);
       this.hint.setVisible(false);
@@ -634,6 +638,11 @@ export class Game extends Scene {
     let best: Enemy | null = null;
     let bestDist = Number.POSITIVE_INFINITY;
     for (const e of this.enemies) {
+      const spec = FOES[e.kind];
+      // DOS `SHOTHOMING` skips invincible and transparent foes: homing into
+      // an invincible target would burn the shot, homing through a
+      // transparent one would chase an unhittable ghost.
+      if (spec.invincible || spec.transparent) continue;
       const d = (e.sprite.x - x) ** 2 + (e.sprite.y - y) ** 2;
       if (d < bestDist) {
         bestDist = d;
@@ -909,6 +918,10 @@ export class Game extends Scene {
   }
 
   private spawnWaves() {
+    // DOS `FOE_STOPCOUNT`: while a stopcount foe lives, `frameinc` is 0 and
+    // `play()`'s attack counter freezes, so the whole attack table (spawns,
+    // field commands and marks) is paused until the foe dies.
+    if (this.enemies.some((e) => FOES[e.kind].stopcount)) return;
     let s = this.queue[this.spawnIndex];
     while (s && s.at <= this.levelTime) {
       this.spawnIndex++;

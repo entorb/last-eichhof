@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FOES } from "./foeRosters";
+import { FOES, type FoeKind } from "./foeRosters";
 import { LEVELS, runLevelsSelfCheck } from "./levels";
 
 describe("levels", () => {
@@ -45,6 +45,28 @@ describe("levels", () => {
         expect(spawn.y, `${spawn.kind} y`).toBeGreaterThanOrEqual(-720);
         expect(spawn.y, `${spawn.kind} y`).toBeLessThanOrEqual(1440);
       }
+    }
+  });
+
+  // DOS `FOE_STOPCOUNT` freezes the attack table while the foe lives, so
+  // `spawnWaves` pauses the whole schedule. A stopcount foe must therefore
+  // always be killable and reachable from the level spawn schedule, or its
+  // level would soft-lock right after it appears.
+  it("marks DOS FOE_STOPCOUNT foes as scheduled killable minibosses", () => {
+    const stops = Object.entries(FOES).filter(([, f]) => f.stopcount);
+    expect(stops.length).toBeGreaterThan(0);
+    const scheduled = new Set(
+      LEVELS.flatMap((l) => l.build())
+        .filter((s) => !s.cmd)
+        .map((s) => s.kind),
+    );
+    for (const [kind, foe] of stops) {
+      expect(foe.role, kind).toBe("miniboss");
+      expect(foe.invincible ?? false, kind).toBe(false);
+      expect(foe.transparent ?? false, kind).toBe(false);
+      expect(scheduled.has(kind as FoeKind), `${kind} not scheduled`).toBe(
+        true,
+      );
     }
   });
 
