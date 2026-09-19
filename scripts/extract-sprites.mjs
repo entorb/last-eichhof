@@ -1,4 +1,4 @@
-// Extract original DOS graphics from beer_exe/BEER.DAT into PNGs and generate
+// Extract original DOS graphics from original_game/beer_exe/BEER.DAT into PNGs and generate
 // the per-level enemy rosters/spawn schedules used by the web remake.
 // See docs/beer_dat.md for the file formats.
 //
@@ -11,8 +11,8 @@ import { fileURLToPath } from "node:url";
 import { encodePng } from "./lib/png.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const DAT = resolve(ROOT, "beer_exe/BEER.DAT");
-const XMODEC = resolve(ROOT, "beer_src/XMODEC.C");
+const DAT = resolve(ROOT, "original_game/beer_exe/BEER.DAT");
+const XMODEC = resolve(ROOT, "original_game/beer_src/XMODEC.C");
 const MAP = resolve(ROOT, "scripts/enemy-map.json");
 const OUT_DIR = resolve(ROOT, "public/assets/enemies");
 const SHEETS_OUT = resolve(ROOT, "src/game/data/enemySprites.ts");
@@ -72,6 +72,29 @@ function decodeSli(buf) {
 // Each (dx,dy) pair is one 20 Hz frame of movement. CYCLE jumps back to the
 // last MARK (the DOS engine resets the object to the MARK position), so the
 // data after CYCLE is unreachable and decoding stops there.
+// Decode one path command word (see decodePath). Returns the command (if any),
+// how many operand bytes follow, and whether decoding stops after it.
+function readPathControl(buf, pos, w) {
+  if (w === 0x8000) return { stop: true }; // END
+  if (w === 0x8004) return { stop: true, cmd: { k: "cycle" } }; // CYCLE
+  if (w === 0x8001)
+    return { cmd: { k: "sprite", index: buf.readUInt16LE(pos) }, len: 2 };
+  if (w === 0x8002)
+    return {
+      cmd: {
+        k: "release",
+        foe: buf.readUInt16LE(pos),
+        dx: buf.readInt16LE(pos + 2),
+        dy: buf.readInt16LE(pos + 4),
+      },
+      len: 6,
+    };
+  if (w === 0x8005) return { cmd: { k: "mark" } };
+  if (w === 0x8006)
+    return { cmd: { k: "sound", index: buf.readUInt16LE(pos) }, len: 2 };
+  return { stop: true }; // unknown control word
+}
+
 function decodePath(buf, start) {
   const cmds = [];
   let pos = start;
@@ -79,27 +102,10 @@ function decodePath(buf, start) {
     const w = buf.readUInt16LE(pos);
     pos += 2;
     if ((w & 0xfff0) === 0x8000) {
-      if (w === 0x8000 || w === 0x8004) {
-        if (w === 0x8004) cmds.push({ k: "cycle" });
-        break;
-      }
-      if (w === 0x8001) {
-        cmds.push({ k: "sprite", index: buf.readUInt16LE(pos) });
-        pos += 2;
-      } else if (w === 0x8002) {
-        cmds.push({
-          k: "release",
-          foe: buf.readUInt16LE(pos),
-          dx: buf.readInt16LE(pos + 2),
-          dy: buf.readInt16LE(pos + 4),
-        });
-        pos += 6;
-      } else if (w === 0x8005) {
-        cmds.push({ k: "mark" });
-      } else if (w === 0x8006) {
-        cmds.push({ k: "sound", index: buf.readUInt16LE(pos) });
-        pos += 2;
-      } else break;
+      const c = readPathControl(buf, pos, w);
+      if (c.cmd) cmds.push(c.cmd);
+      pos += c.len ?? 0;
+      if (c.stop) break;
     } else {
       cmds.push({ k: "move", dx: (w << 16) >> 16, dy: buf.readInt16LE(pos) });
       pos += 2;
@@ -202,6 +208,20 @@ function parsePalette() {
 
 // --- rendering -------------------------------------------------------------
 
+// Nearest-neighbor stamp one palette pixel into `rgba` at (x0, y0) × scale.
+function fillScalePixel(rgba, width, scale, x0, y0, [r, g, b]) {
+  for (let sy = 0; sy < scale; sy++) {
+    for (let sx = 0; sx < scale; sx++) {
+      const px = (x0 + sx) * 4;
+      const py = (y0 + sy) * width * 4;
+      rgba[py + px] = r;
+      rgba[py + px + 1] = g;
+      rgba[py + px + 2] = b;
+      rgba[py + px + 3] = 255;
+    }
+  }
+}
+
 function renderSprite(sprite, pal, scale) {
   const { xs, ys, maxn, data } = sprite;
   const sw = xs * scale;
@@ -213,17 +233,7 @@ function renderSprite(sprite, pal, scale) {
       for (let x = 0; x < xs; x++) {
         const idx = data[(f * ys + y) * xs + x];
         if (idx === 0) continue;
-        const [r, g, b] = pal[idx];
-        for (let sy = 0; sy < scale; sy++) {
-          for (let sx = 0; sx < scale; sx++) {
-            const px = (f * sw + x * scale + sx) * 4;
-            const py = (y * scale + sy) * w * 4;
-            rgba[py + px] = r;
-            rgba[py + px + 1] = g;
-            rgba[py + px + 2] = b;
-            rgba[py + px + 3] = 255;
-          }
-        }
+        fillScalePixel(rgba, w, scale, f * sw + x * scale, y * scale, pal[idx]);
       }
     }
   }
@@ -342,23 +352,53 @@ function roleFor(foe) {
   return "chaff";
 }
 
-// Replay a `.FOE` path into the web step list. Consecutive identical (dx,dy)
-// frames are merged into one straight `go` (same 20 Hz timing), coords ×scale.
+// Merge a run of identical (dx,dy) frames into one straight `go` (same 20 Hz
+// timing); a standing run becomes a `wait`. Coords are ×scale.
+function moveStep(run) {
+  if (run.dx === 0 && run.dy === 0) {
+    return { t: "wait", ms: run.count * 50 };
+  }
+  return {
+    t: "go",
+    dx: run.dx * run.count * scale,
+    dy: run.dy * run.count * scale,
+    speed: Math.round(Math.hypot(run.dx, run.dy) * scale * 20 * 100) / 100,
+  };
+}
+
+function controlStep(c, level, foes, valid) {
+  if (c.k === "mark") return { t: "mark" };
+  if (c.k === "cycle") return { t: "loop" };
+  if (c.k === "sprite") {
+    const key = `l${level}-s${c.index}`;
+    emitSprite(key, level, c.index);
+    return { t: "sprite", texture: key };
+  }
+  if (c.k === "release") {
+    const rf = foes[c.foe];
+    if (rf && rf.flags & 0x20) {
+      // FOE_LINE: an aimed projectile (DOS line mode, speed px/tick).
+      return { t: "shot", speed: rf.speed };
+    }
+    if (rf && valid.has(c.foe) && roleFor(rf) !== "boss") {
+      return {
+        t: "release",
+        kind: `l${level}-f${c.foe}`,
+        x: c.dx * scale,
+        y: c.dy * scale,
+      };
+    }
+  }
+  return null;
+}
+
+// Replay a `.FOE` path into the web step list.
 function buildFoePath(foe, level, foebuf, foes, valid) {
   const steps = [];
   let run = null;
   const flush = () => {
     if (!run) return;
-    if (run.dx === 0 && run.dy === 0) {
-      steps.push({ t: "wait", ms: run.count * 50 });
-    } else {
-      steps.push({
-        t: "go",
-        dx: run.dx * run.count * scale,
-        dy: run.dy * run.count * scale,
-        speed: Math.round(Math.hypot(run.dx, run.dy) * scale * 20 * 100) / 100,
-      });
-    }
+    steps.push(moveStep(run));
     run = null;
   };
   for (const c of decodePath(foebuf, foe.path)) {
@@ -371,28 +411,8 @@ function buildFoePath(foe, level, foebuf, foes, valid) {
       continue;
     }
     flush();
-    if (c.k === "mark") {
-      steps.push({ t: "mark" });
-    } else if (c.k === "cycle") {
-      steps.push({ t: "loop" });
-    } else if (c.k === "sprite") {
-      const key = `l${level}-s${c.index}`;
-      emitSprite(key, level, c.index);
-      steps.push({ t: "sprite", texture: key });
-    } else if (c.k === "release") {
-      const rf = foes[c.foe];
-      if (rf && rf.flags & 0x20) {
-        // FOE_LINE: an aimed projectile (DOS line mode, speed px/tick).
-        steps.push({ t: "shot", speed: rf.speed });
-      } else if (rf && valid.has(c.foe) && roleFor(rf) !== "boss") {
-        steps.push({
-          t: "release",
-          kind: `l${level}-f${c.foe}`,
-          x: c.dx * scale,
-          y: c.dy * scale,
-        });
-      }
-    }
+    const step = controlStep(c, level, foes, valid);
+    if (step) steps.push(step);
   }
   flush();
   return steps;
@@ -565,7 +585,7 @@ ${sheets
 const kindList = roster.map((r) => r.kind);
 writeFileSync(
   ROSTERS_OUT,
-  `// Generated by scripts/extract-sprites.mjs from beer_exe/BEER.DAT.
+  `// Generated by scripts/extract-sprites.mjs from original_game/beer_exe/BEER.DAT.
 // Do not edit by hand; edit scripts/enemy-map.json and re-run the script.
 export type FoeRole = "chaff" | "miniboss" | "boss";
 
