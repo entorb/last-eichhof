@@ -54,46 +54,7 @@ export class PathRunner {
     while (budget > 0 && !this.done && guard++ < 256) {
       const s = this.state;
       if (s.kind === "none") break;
-      if (s.kind === "wait") {
-        const use = Math.min(budget, s.remaining / 1000);
-        s.remaining -= use * 1000;
-        budget -= use;
-        if (s.remaining <= 0.001) this.advance();
-      } else if (s.kind === "go") {
-        const step = Math.min(s.speed * budget, s.remaining);
-        this.pos.x += s.ux * step;
-        this.pos.y += s.uy * step;
-        s.remaining -= step;
-        budget -= step / s.speed;
-        if (s.remaining <= 0.001) this.advance();
-      } else if (s.kind === "line") {
-        const dx = s.x - this.pos.x;
-        const dy = s.y - this.pos.y;
-        const dist = Math.hypot(dx, dy);
-        if (dist <= 0.5) {
-          this.advance();
-          continue;
-        }
-        const step = Math.min(s.speed * budget, dist);
-        this.pos.x += (dx / dist) * step;
-        this.pos.y += (dy / dist) * step;
-        budget -= step / s.speed;
-        if (dist - step <= 0.5) this.advance();
-      } else {
-        const use = Math.min(budget, s.remaining / 1000);
-        if (target) {
-          const dx = target.x - this.pos.x;
-          const dy = target.y - this.pos.y;
-          const dist = Math.hypot(dx, dy) || 1;
-          this.pos.x += (dx / dist) * s.speed * use;
-          this.pos.y += (dy / dist) * s.speed * use;
-        } else {
-          this.pos.y += s.speed * use;
-        }
-        s.remaining -= use * 1000;
-        budget -= use;
-        if (s.remaining <= 0.001) this.advance();
-      }
+      budget = this.step(s, budget, target);
     }
     return !this.done;
   }
@@ -101,6 +62,79 @@ export class PathRunner {
   private advance(): void {
     this.cursor++;
     this.enter();
+  }
+
+  private step(s: CmdState, budget: number, target?: Vec): number {
+    switch (s.kind) {
+      case "wait":
+        return this.stepWait(s, budget);
+      case "home":
+        return this.stepHome(s, budget, target);
+      case "go":
+        return this.stepGo(s, budget);
+      case "line":
+        return this.stepLine(s, budget);
+      // "none" is unreachable: update() bails on it before calling step.
+      default:
+        return budget;
+    }
+  }
+
+  private stepWait(
+    s: Extract<CmdState, { kind: "wait" }>,
+    budget: number,
+  ): number {
+    const use = Math.min(budget, s.remaining / 1000);
+    s.remaining -= use * 1000;
+    if (s.remaining <= 0.001) this.advance();
+    return budget - use;
+  }
+
+  private stepHome(
+    s: Extract<CmdState, { kind: "home" }>,
+    budget: number,
+    target?: Vec,
+  ): number {
+    const use = Math.min(budget, s.remaining / 1000);
+    if (target) {
+      const dx = target.x - this.pos.x;
+      const dy = target.y - this.pos.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      this.pos.x += (dx / dist) * s.speed * use;
+      this.pos.y += (dy / dist) * s.speed * use;
+    } else {
+      this.pos.y += s.speed * use;
+    }
+    s.remaining -= use * 1000;
+    if (s.remaining <= 0.001) this.advance();
+    return budget - use;
+  }
+
+  private stepGo(s: Extract<CmdState, { kind: "go" }>, budget: number): number {
+    const step = Math.min(s.speed * budget, s.remaining);
+    this.pos.x += s.ux * step;
+    this.pos.y += s.uy * step;
+    s.remaining -= step;
+    if (s.remaining <= 0.001) this.advance();
+    return budget - step / s.speed;
+  }
+
+  private stepLine(
+    s: Extract<CmdState, { kind: "line" }>,
+    budget: number,
+  ): number {
+    const dx = s.x - this.pos.x;
+    const dy = s.y - this.pos.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist <= 0.5) {
+      this.advance();
+      return budget;
+    }
+    const step = Math.min(s.speed * budget, dist);
+    this.pos.x += (dx / dist) * step;
+    this.pos.y += (dy / dist) * step;
+    if (dist - step <= 0.5) this.advance();
+    return budget - step / s.speed;
   }
 
   private enter(): void {
@@ -112,39 +146,46 @@ export class PathRunner {
         this.state = { kind: "none" };
         return;
       }
-      if (step.t === "mark") {
+      if (this.applyControl(step)) continue;
+      this.setMotionState(step);
+      return;
+    }
+    this.done = true;
+  }
+
+  /** Event/control steps (mark, loop, cycle, spawn, sprite, release, shot).
+   *  Returns true when the step was consumed and the command cursor advanced. */
+  private applyControl(step: PathStep): boolean {
+    switch (step.t) {
+      case "mark":
         this.markCursor = this.cursor + 1;
         this.markPos = { x: this.pos.x, y: this.pos.y };
         this.cursor++;
-        continue;
-      }
-      if (step.t === "loop") {
+        return true;
+      case "loop":
         this.cursor = this.markCursor;
         if (this.markPos) this.pos = { ...this.markPos };
-        continue;
-      }
-      if (step.t === "cycle") {
+        return true;
+      case "cycle": {
         const used = this.loops.get(this.cursor) ?? 0;
         if (used >= step.times) {
           this.cursor++;
-          continue;
+          return true;
         }
         this.loops.set(this.cursor, used + 1);
         this.cursor = this.markCursor;
         if (this.markPos) this.pos = { ...this.markPos };
-        continue;
+        return true;
       }
-      if (step.t === "spawn") {
+      case "spawn":
         this.events.push({ t: "spawn", kind: step.kind });
         this.cursor++;
-        continue;
-      }
-      if (step.t === "sprite") {
+        return true;
+      case "sprite":
         this.events.push({ t: "sprite", texture: step.texture });
         this.cursor++;
-        continue;
-      }
-      if (step.t === "release") {
+        return true;
+      case "release":
         this.events.push({
           t: "release",
           kind: step.kind,
@@ -152,18 +193,23 @@ export class PathRunner {
           y: step.y,
         });
         this.cursor++;
-        continue;
-      }
-      if (step.t === "shot") {
+        return true;
+      case "shot":
         this.events.push({ t: "shot", speed: step.speed });
         this.cursor++;
-        continue;
-      }
-      if (step.t === "wait") {
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /** Motion steps become a state that update() advances; defaults to home. */
+  private setMotionState(step: PathStep): void {
+    switch (step.t) {
+      case "wait":
         this.state = { kind: "wait", remaining: step.ms };
         return;
-      }
-      if (step.t === "go") {
+      case "go": {
         const len = Math.hypot(step.dx, step.dy) || 1;
         this.state = {
           kind: "go",
@@ -174,14 +220,12 @@ export class PathRunner {
         };
         return;
       }
-      if (step.t === "line") {
+      case "line":
         this.state = { kind: "line", x: step.x, y: step.y, speed: step.speed };
         return;
-      }
-      this.state = { kind: "home", remaining: step.ms, speed: step.speed };
-      return;
+      case "home":
+        this.state = { kind: "home", remaining: step.ms, speed: step.speed };
     }
-    this.done = true;
   }
 }
 
@@ -257,11 +301,23 @@ export function pathFor(kind: FoeKind): PathStep[] {
   return at(CHAFF_PATHS, hash(kind) % CHAFF_PATHS.length);
 }
 
-export function runPathSelfCheck(): void {
-  const assert = (cond: boolean, msg: string) => {
-    if (!cond) throw new Error(`selfcheck: ${msg}`);
-  };
+function assert(cond: boolean, msg: string): void {
+  if (!cond) throw new Error(`selfcheck: ${msg}`);
+}
 
+function checkPathStep(kind: FoeKind, s: PathStep, kinds: FoeKind[]): void {
+  if (s.t === "go") {
+    assert(s.speed > 0 && Number.isFinite(s.speed), `speed for ${kind}`);
+  }
+  if (s.t === "release") {
+    assert(kinds.includes(s.kind), `release kind for ${kind}`);
+  }
+  if (s.t === "shot") {
+    assert(s.speed > 0, `shot speed for ${kind}`);
+  }
+}
+
+export function runPathSelfCheck(): void {
   const p = new PathRunner(
     [
       { t: "go", dx: 100, dy: 0, speed: 100 },
@@ -325,17 +381,7 @@ export function runPathSelfCheck(): void {
     assert(FOES[k].texture.length > 0, `texture for ${k}`);
     const path = FOES[k].path ?? [];
     assert(path.length > 0, `path for ${k}`);
-    for (const s of path) {
-      if (s.t === "go") {
-        assert(s.speed > 0 && Number.isFinite(s.speed), `speed for ${k}`);
-      }
-      if (s.t === "release") {
-        assert(kinds.includes(s.kind), `release kind for ${k}`);
-      }
-      if (s.t === "shot") {
-        assert(s.speed > 0, `shot speed for ${k}`);
-      }
-    }
+    for (const s of path) checkPathStep(k, s, kinds);
     assert(pathFor(k).length > 0, `pathFor ${k}`);
     // Every extracted foe has a real path, so `pathFor` must replay it
     // verbatim — invincible/transparent/boss included.
