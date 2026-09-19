@@ -19,22 +19,20 @@ const OUT_DIR = resolve(ROOT, "public/icons");
 const FRAMES = 10; // ship sheet frame count
 const BG = [5, 6, 13]; // #05060d, matches the game canvas
 
+// Distance of a coordinate from its rounded corner: > radius means "inside the
+// center block" and does not clip. Computed separately so no nested ternaries.
+function cornerDist(v, radius, size) {
+  if (v < radius) return radius - v;
+  if (v >= size - radius) return v - (size - radius - 1);
+  return 0;
+}
+
 function roundedRectMask(size, radius) {
   const mask = new Uint8Array(size * size).fill(1);
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      const cx =
-        x < radius
-          ? radius - x
-          : x >= size - radius
-            ? x - (size - radius - 1)
-            : 0;
-      const cy =
-        y < radius
-          ? radius - y
-          : y >= size - radius
-            ? y - (size - radius - 1)
-            : 0;
+      const cx = cornerDist(x, radius, size);
+      const cy = cornerDist(y, radius, size);
       if (cx * cx + cy * cy > radius * radius) mask[y * size + x] = 0;
     }
   }

@@ -51,10 +51,9 @@ export function encodePng(width, height, rgba) {
 
 const SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
-// Decode an 8-bit RGBA PNG (color type 6, all five filters) into {width, height, rgba}.
-export function decodePng(buf) {
-  if (!buf.subarray(0, 8).equals(SIGNATURE)) throw new Error("not a PNG");
-  let pos = 8;
+// Read the PNG chunk stream until IEND; returns the bare header fields and the
+// concatenated IDAT payloads.
+function readChunks(buf, pos) {
   let width = 0;
   let height = 0;
   const idat = [];
@@ -75,17 +74,34 @@ export function decodePng(buf) {
     }
     pos += 12 + len;
   }
+  return { width, height, idat };
+}
+
+function paeth(a, b, c) {
+  const p = a + b - c;
+  const pa = Math.abs(p - a);
+  const pb = Math.abs(p - b);
+  const pc = Math.abs(p - c);
+  if (pa <= pb && pa <= pc) return a;
+  return pb <= pc ? b : c;
+}
+
+// Reverse one of the five PNG scanline filters (0 = None).
+function unfilter(filter, a, b, c, v) {
+  if (filter === 1) return v + a;
+  if (filter === 2) return v + b;
+  if (filter === 3) return v + ((a + b) >> 1);
+  if (filter === 4) return v + paeth(a, b, c);
+  return v;
+}
+
+// Decode an 8-bit RGBA PNG (color type 6, all five filters) into {width, height, rgba}.
+export function decodePng(buf) {
+  if (!buf.subarray(0, 8).equals(SIGNATURE)) throw new Error("not a PNG");
+  const { width, height, idat } = readChunks(buf, 8);
   const raw = inflateSync(Buffer.concat(idat));
   const stride = width * 4;
   const rgba = Buffer.alloc(stride * height);
-  const paeth = (a, b, c) => {
-    const p = a + b - c;
-    const pa = Math.abs(p - a);
-    const pb = Math.abs(p - b);
-    const pc = Math.abs(p - c);
-    if (pa <= pb && pa <= pc) return a;
-    return pb <= pc ? b : c;
-  };
   for (let y = 0; y < height; y++) {
     const filter = raw[y * (stride + 1)];
     const src = y * (stride + 1) + 1;
@@ -94,12 +110,7 @@ export function decodePng(buf) {
       const a = x >= 4 ? rgba[dst + x - 4] : 0;
       const b = y > 0 ? rgba[dst - stride + x] : 0;
       const c = x >= 4 && y > 0 ? rgba[dst - stride + x - 4] : 0;
-      let v = raw[src + x];
-      if (filter === 1) v += a;
-      else if (filter === 2) v += b;
-      else if (filter === 3) v += (a + b) >> 1;
-      else if (filter === 4) v += paeth(a, b, c);
-      rgba[dst + x] = v & 0xff;
+      rgba[dst + x] = unfilter(filter, a, b, c, raw[src + x]) & 0xff;
     }
   }
   return { width, height, rgba };
