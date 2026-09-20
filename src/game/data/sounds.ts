@@ -2,17 +2,17 @@
 // Do not edit by hand; re-run the script.
 // biome-ignore-all lint/suspicious/noApproximativeNumericConstant: generated durations
 export interface SoundDef {
-  key: string;
-  file: string;
-  seconds: number;
-  source: string;
+  key: string
+  file: string
+  seconds: number
+  source: string
 }
 
 export interface LevelCues {
-  explosion: string | null;
-  bossExplosion: string | null;
-  enemyShot: string | null;
-  cue: string | null;
+  explosion: string | null
+  bossExplosion: string | null
+  enemyShot: string | null
+  cue: string | null
 }
 
 export const SOUNDS: SoundDef[] = [
@@ -520,7 +520,7 @@ export const SOUNDS: SoundDef[] = [
     seconds: 2.553,
     source: "LEVEL4.SND#14 (adpcm4)",
   },
-];
+]
 
 export const LEVEL_CUES: Record<number, LevelCues> = {
   1: {
@@ -553,4 +553,4 @@ export const LEVEL_CUES: Record<number, LevelCues> = {
     enemyShot: "level5-snd13",
     cue: "level5-snd9",
   },
-};
+}

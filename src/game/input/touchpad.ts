@@ -1,21 +1,21 @@
-import type { GameObjects, Scene } from "phaser";
+import type { GameObjects, Scene } from "phaser"
 
-export type PadAction = "up" | "down" | "left" | "right" | "confirm" | "back";
+export type PadAction = "up" | "down" | "left" | "right" | "confirm" | "back"
 
 export interface PadState {
-  up: boolean;
-  down: boolean;
-  left: boolean;
-  right: boolean;
-  confirm: boolean;
-  back: boolean;
+  up: boolean
+  down: boolean
+  left: boolean
+  right: boolean
+  confirm: boolean
+  back: boolean
 }
 
 interface ButtonDef {
-  action: PadAction;
-  label: string;
-  x: number;
-  y: number;
+  action: PadAction
+  label: string
+  x: number
+  y: number
 }
 
 const BUTTONS: ButtonDef[] = [
@@ -25,13 +25,13 @@ const BUTTONS: ButtonDef[] = [
   { action: "right", label: "▶", x: 156, y: 594 },
   { action: "confirm", label: "OK", x: 892, y: 594 },
   { action: "back", label: "ESC", x: 812, y: 660 },
-];
+]
 
 // On-screen d-pad + confirm/back for Menu and Shop in touch mode. Poll it once
 // per frame: `poll()` returns the buttons pressed this frame and clears them.
 export class TouchPad {
-  private readonly pressed = new Set<PadAction>();
-  private objects: GameObjects.Text[] = [];
+  private readonly pressed = new Set<PadAction>()
+  private objects: GameObjects.Text[] = []
 
   constructor(scene: Scene) {
     for (const b of BUTTONS) {
@@ -45,9 +45,9 @@ export class TouchPad {
         .setOrigin(0.5)
         .setPadding(10, 6, 10, 6)
         .setDepth(500)
-        .setInteractive({ useHandCursor: true });
-      text.on("pointerdown", () => this.pressed.add(b.action));
-      this.objects.push(text);
+        .setInteractive({ useHandCursor: true })
+      text.on("pointerdown", () => this.pressed.add(b.action))
+      this.objects.push(text)
     }
   }
 
@@ -59,14 +59,14 @@ export class TouchPad {
       right: this.pressed.has("right"),
       confirm: this.pressed.has("confirm"),
       back: this.pressed.has("back"),
-    };
-    this.pressed.clear();
-    return state;
+    }
+    this.pressed.clear()
+    return state
   }
 
   destroy(): void {
-    for (const o of this.objects) o.destroy();
-    this.objects = [];
-    this.pressed.clear();
+    for (const o of this.objects) o.destroy()
+    this.objects = []
+    this.pressed.clear()
   }
 }
