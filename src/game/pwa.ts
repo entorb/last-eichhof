@@ -4,42 +4,42 @@
 // manual instructions there.
 
 interface InstallPromptEvent extends Event {
-  prompt(): Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+  prompt(): Promise<void>
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>
 }
 
 interface InstallPrompt {
-  has(): boolean;
-  prompt(): Promise<boolean>;
+  has(): boolean
+  prompt(): Promise<boolean>
 }
 
-let controller: InstallPrompt | null = null;
+let controller: InstallPrompt | null = null
 
 /** Start listening for `beforeinstallprompt`. Call once at startup. */
 export function captureInstallPrompt(target: EventTarget = window): void {
-  let deferred: InstallPromptEvent | null = null;
+  let deferred: InstallPromptEvent | null = null
   target.addEventListener("beforeinstallprompt", (event) => {
-    event.preventDefault();
-    deferred = event as InstallPromptEvent;
-  });
+    event.preventDefault()
+    deferred = event as InstallPromptEvent
+  })
   controller = {
     has: () => deferred !== null,
     prompt: async () => {
-      const event = deferred;
-      if (!event) return false;
-      deferred = null;
-      await event.prompt();
-      const choice = await event.userChoice;
-      return choice.outcome === "accepted";
+      const event = deferred
+      if (!event) return false
+      deferred = null
+      await event.prompt()
+      const choice = await event.userChoice
+      return choice.outcome === "accepted"
     },
-  };
+  }
 }
 
 export function hasInstallPrompt(): boolean {
-  return controller?.has() ?? false;
+  return controller?.has() ?? false
 }
 
 /** Show the native install prompt. Resolves true if the user accepted. */
 export function promptInstall(): Promise<boolean> {
-  return controller?.prompt() ?? Promise.resolve(false);
+  return controller?.prompt() ?? Promise.resolve(false)
 }
