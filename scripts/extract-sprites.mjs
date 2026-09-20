@@ -5,64 +5,64 @@
 // Usage:
 //   node scripts/extract-sprites.mjs            write PNGs + contact sheet + TS data
 //   node scripts/extract-sprites.mjs --catalog  also print an ASCII/colour catalog
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { encodePng } from "./lib/png.mjs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { dirname, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
+import { encodePng } from "./lib/png.mjs"
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const DAT = resolve(ROOT, "original_game/beer_exe/BEER.DAT");
-const XMODEC = resolve(ROOT, "original_game/beer_src/beersrc/XMODEC.C");
-const MAP = resolve(ROOT, "scripts/enemy-map.json");
-const OUT_DIR = resolve(ROOT, "public/assets/enemies");
-const SHEETS_OUT = resolve(ROOT, "src/game/data/enemySprites.ts");
-const ROSTERS_OUT = resolve(ROOT, "src/game/data/foeRosters.ts");
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+const DAT = resolve(ROOT, "original_game/beer_exe/BEER.DAT")
+const XMODEC = resolve(ROOT, "original_game/beer_src/beersrc/XMODEC.C")
+const MAP = resolve(ROOT, "scripts/enemy-map.json")
+const OUT_DIR = resolve(ROOT, "public/assets/enemies")
+const SHEETS_OUT = resolve(ROOT, "src/game/data/enemySprites.ts")
+const ROSTERS_OUT = resolve(ROOT, "src/game/data/foeRosters.ts")
 
-const CATALOG = process.argv.includes("--catalog");
-const LEVELS = 5;
+const CATALOG = process.argv.includes("--catalog")
+const LEVELS = 5
 
 // --- archive ---------------------------------------------------------------
 
-const HDR_SIZE = 30;
-const DIR_ENTRY = 24;
+const HDR_SIZE = 30
+const DIR_ENTRY = 24
 
 function parseArchive(buf) {
-  const count = buf.readUInt16LE(HDR_SIZE + 2);
-  const files = new Map();
+  const count = buf.readUInt16LE(HDR_SIZE + 2)
+  const files = new Map()
   for (let i = 0; i < count; i++) {
-    const off = HDR_SIZE + 4 + i * DIR_ENTRY;
+    const off = HDR_SIZE + 4 + i * DIR_ENTRY
     const name = buf
       .subarray(off, off + 14)
       .toString("latin1")
       .split("\0")[0]
-      .toUpperCase();
-    const size = buf.readUInt32LE(off + 14);
-    const fptr = buf.readUInt32LE(off + 20);
-    files.set(name, buf.subarray(fptr, fptr + size));
+      .toUpperCase()
+    const size = buf.readUInt32LE(off + 14)
+    const fptr = buf.readUInt32LE(off + 20)
+    files.set(name, buf.subarray(fptr, fptr + size))
   }
-  return files;
+  return files
 }
 
 // --- sprite library (.SLI) -------------------------------------------------
 
 function unpackPtr(packed) {
-  return (packed >>> 16) * 16 + (packed & 0xffff);
+  return (packed >>> 16) * 16 + (packed & 0xffff)
 }
 
 function decodeSli(buf) {
-  const count = buf.readUInt16LE(0);
-  const sprites = [];
+  const count = buf.readUInt16LE(0)
+  const sprites = []
   for (let i = 0; i < count; i++) {
-    const packed = buf.readUInt32LE(2 + i * 6);
-    const flags = buf.readUInt16LE(2 + i * 6 + 4);
-    const base = 2 + unpackPtr(packed);
-    const xs = buf.readUInt16LE(base);
-    const ys = buf.readUInt16LE(base + 2);
-    const maxn = buf.readUInt16LE(base + 4);
-    const data = buf.subarray(base + 6, base + 6 + xs * ys * maxn);
-    sprites.push({ xs, ys, maxn, flags, data });
+    const packed = buf.readUInt32LE(2 + i * 6)
+    const flags = buf.readUInt16LE(2 + i * 6 + 4)
+    const base = 2 + unpackPtr(packed)
+    const xs = buf.readUInt16LE(base)
+    const ys = buf.readUInt16LE(base + 2)
+    const maxn = buf.readUInt16LE(base + 4)
+    const data = buf.subarray(base + 6, base + 6 + xs * ys * maxn)
+    sprites.push({ xs, ys, maxn, flags, data })
   }
-  return sprites;
+  return sprites
 }
 
 // --- foe library (.FOE) ----------------------------------------------------
@@ -75,10 +75,9 @@ function decodeSli(buf) {
 // Decode one path command word (see decodePath). Returns the command (if any),
 // how many operand bytes follow, and whether decoding stops after it.
 function readPathControl(buf, pos, w) {
-  if (w === 0x8000) return { stop: true }; // END
-  if (w === 0x8004) return { stop: true, cmd: { k: "cycle" } }; // CYCLE
-  if (w === 0x8001)
-    return { cmd: { k: "sprite", index: buf.readUInt16LE(pos) }, len: 2 };
+  if (w === 0x8000) return { stop: true } // END
+  if (w === 0x8004) return { stop: true, cmd: { k: "cycle" } } // CYCLE
+  if (w === 0x8001) return { cmd: { k: "sprite", index: buf.readUInt16LE(pos) }, len: 2 }
   if (w === 0x8002)
     return {
       cmd: {
@@ -88,37 +87,36 @@ function readPathControl(buf, pos, w) {
         dy: buf.readInt16LE(pos + 4),
       },
       len: 6,
-    };
-  if (w === 0x8005) return { cmd: { k: "mark" } };
-  if (w === 0x8006)
-    return { cmd: { k: "sound", index: buf.readUInt16LE(pos) }, len: 2 };
-  return { stop: true }; // unknown control word
+    }
+  if (w === 0x8005) return { cmd: { k: "mark" } }
+  if (w === 0x8006) return { cmd: { k: "sound", index: buf.readUInt16LE(pos) }, len: 2 }
+  return { stop: true } // unknown control word
 }
 
 function decodePath(buf, start) {
-  const cmds = [];
-  let pos = start;
+  const cmds = []
+  let pos = start
   while (pos + 2 <= buf.length) {
-    const w = buf.readUInt16LE(pos);
-    pos += 2;
+    const w = buf.readUInt16LE(pos)
+    pos += 2
     if ((w & 0xfff0) === 0x8000) {
-      const c = readPathControl(buf, pos, w);
-      if (c.cmd) cmds.push(c.cmd);
-      pos += c.len ?? 0;
-      if (c.stop) break;
+      const c = readPathControl(buf, pos, w)
+      if (c.cmd) cmds.push(c.cmd)
+      pos += c.len ?? 0
+      if (c.stop) break
     } else {
-      cmds.push({ k: "move", dx: (w << 16) >> 16, dy: buf.readInt16LE(pos) });
-      pos += 2;
+      cmds.push({ k: "move", dx: (w << 16) >> 16, dy: buf.readInt16LE(pos) })
+      pos += 2
     }
   }
-  return cmds;
+  return cmds
 }
 
 function parseFoe(buf) {
-  const count = buf.readUInt16LE(0);
-  const foes = [];
+  const count = buf.readUInt16LE(0)
+  const foes = []
   for (let i = 0; i < count; i++) {
-    const base = 2 + unpackPtr(buf.readUInt32LE(2 + i * 4));
+    const base = 2 + unpackPtr(buf.readUInt32LE(2 + i * 4))
     foes.push({
       flags: buf.readInt16LE(base),
       shield: buf.readInt16LE(base + 2),
@@ -127,83 +125,75 @@ function parseFoe(buf) {
       sprite: buf.readInt16LE(base + 8),
       speed: buf.readInt16LE(base + 10),
       path: base + 12,
-    });
+    })
   }
-  return foes;
+  return foes
 }
 
 // --- attack table (.TBL) ---------------------------------------------------
 
 function parseTbl(buf) {
-  const count = buf.readUInt16LE(0);
-  const entries = [];
+  const count = buf.readUInt16LE(0)
+  const entries = []
   for (let i = 0; i < count; i++) {
-    const base = 2 + i * 8;
+    const base = 2 + i * 8
     entries.push({
       at: buf.readUInt16LE(base),
       x: buf.readInt16LE(base + 2),
       y: buf.readInt16LE(base + 4),
       foe: buf.readUInt16LE(base + 6),
-    });
+    })
   }
-  return entries;
+  return entries
 }
 
 // --- level description (.DSC) ----------------------------------------------
 
 function parseDsc(buf) {
   return {
-    text: buf
-      .subarray(2, 42)
-      .toString("latin1")
-      .split("\0")[0]
-      .replace(/\s+/g, " ")
-      .trim(),
+    text: buf.subarray(2, 42).toString("latin1").split("\0")[0].replace(/\s+/g, " ").trim(),
     nbigboss: buf.readInt16LE(42),
     score: buf.readUInt16LE(44),
     money: buf.readUInt16LE(46),
-  };
+  }
 }
 
 // --- explosion sprites (.EXP) ----------------------------------------------
 
 function parseExplosionSprites(buf) {
-  const count = buf.readUInt16LE(0);
-  const sprites = new Set();
+  const count = buf.readUInt16LE(0)
+  const sprites = new Set()
   for (let i = 0; i < count; i++) {
-    let pos = 2 + unpackPtr(buf.readUInt32LE(2 + i * 4));
+    let pos = 2 + unpackPtr(buf.readUInt32LE(2 + i * 4))
     while (pos + 2 <= buf.length) {
-      const w = buf.readUInt16LE(pos);
-      pos += 2;
-      if (w === 0x8000) break;
+      const w = buf.readUInt16LE(pos)
+      pos += 2
+      if (w === 0x8000) break
       if (w === 0x8001) {
-        sprites.add(buf.readUInt16LE(pos));
-        pos += 6;
-      } else if (w === 0x8003) pos += 2;
-      else if (w === 0x8005) pos += 6;
-      else if (w === 0x8006) pos += 10;
+        sprites.add(buf.readUInt16LE(pos))
+        pos += 6
+      } else if (w === 0x8003) pos += 2
+      else if (w === 0x8005) pos += 6
+      else if (w === 0x8006) pos += 10
     }
   }
-  return sprites;
+  return sprites
 }
 
 // --- palette ---------------------------------------------------------------
 
 function parsePalette() {
-  const src = readFileSync(XMODEC, "utf8");
-  const m = src.match(/standardpal\[PALETTESIZE\]\s*=\s*\{([\s\S]*?)\};/);
-  if (!m) throw new Error("standardpal not found in XMODEC.C");
-  const bytes = [...m[1].matchAll(/0x([0-9a-fA-F]{2})/g)].map((x) =>
-    Number.parseInt(x[1], 16),
-  );
-  if (bytes.length !== 768)
-    throw new Error(`palette has ${bytes.length} bytes`);
-  const pal = [];
+  const src = readFileSync(XMODEC, "utf8")
+  const m = src.match(/standardpal\[PALETTESIZE\]\s*=\s*\{([\s\S]*?)\};/)
+  if (!m) throw new Error("standardpal not found in XMODEC.C")
+  const bytes = [...m[1].matchAll(/0x([0-9a-fA-F]{2})/g)].map((x) => Number.parseInt(x[1], 16))
+  if (bytes.length !== 768) throw new Error(`palette has ${bytes.length} bytes`)
+  const pal = []
   for (let i = 0; i < 256; i++) {
-    const v = (c) => ((c << 2) | (c >> 4)) & 0xff;
-    pal.push([v(bytes[i * 3]), v(bytes[i * 3 + 1]), v(bytes[i * 3 + 2])]);
+    const v = (c) => ((c << 2) | (c >> 4)) & 0xff
+    pal.push([v(bytes[i * 3]), v(bytes[i * 3 + 1]), v(bytes[i * 3 + 2])])
   }
-  return pal;
+  return pal
 }
 
 // --- rendering -------------------------------------------------------------
@@ -212,102 +202,98 @@ function parsePalette() {
 function fillScalePixel(rgba, width, scale, x0, y0, [r, g, b]) {
   for (let sy = 0; sy < scale; sy++) {
     for (let sx = 0; sx < scale; sx++) {
-      const px = (x0 + sx) * 4;
-      const py = (y0 + sy) * width * 4;
-      rgba[py + px] = r;
-      rgba[py + px + 1] = g;
-      rgba[py + px + 2] = b;
-      rgba[py + px + 3] = 255;
+      const px = (x0 + sx) * 4
+      const py = (y0 + sy) * width * 4
+      rgba[py + px] = r
+      rgba[py + px + 1] = g
+      rgba[py + px + 2] = b
+      rgba[py + px + 3] = 255
     }
   }
 }
 
 function renderSprite(sprite, pal, scale) {
-  const { xs, ys, maxn, data } = sprite;
-  const sw = xs * scale;
-  const w = xs * maxn * scale;
-  const h = ys * scale;
-  const rgba = Buffer.alloc(w * h * 4);
+  const { xs, ys, maxn, data } = sprite
+  const sw = xs * scale
+  const w = xs * maxn * scale
+  const h = ys * scale
+  const rgba = Buffer.alloc(w * h * 4)
   for (let f = 0; f < maxn; f++) {
     for (let y = 0; y < ys; y++) {
       for (let x = 0; x < xs; x++) {
-        const idx = data[(f * ys + y) * xs + x];
-        if (idx === 0) continue;
-        fillScalePixel(rgba, w, scale, f * sw + x * scale, y * scale, pal[idx]);
+        const idx = data[(f * ys + y) * xs + x]
+        if (idx === 0) continue
+        fillScalePixel(rgba, w, scale, f * sw + x * scale, y * scale, pal[idx])
       }
     }
   }
-  return { width: w, height: h, rgba };
+  return { width: w, height: h, rgba }
 }
 
 // --- catalog (human inspection) -------------------------------------------
 
-const RAMP = " .:-=+*#%@";
+const RAMP = " .:-=+*#%@"
 
 function catalog(libs, pal) {
-  const lum = pal.map(([r, g, b]) => (0.299 * r + 0.587 * g + 0.114 * b) / 255);
-  const ch = (i) =>
-    i === 0 ? " " : RAMP[Math.max(1, Math.min(9, Math.round(lum[i] * 9)))];
+  const lum = pal.map(([r, g, b]) => (0.299 * r + 0.587 * g + 0.114 * b) / 255)
+  const ch = (i) => (i === 0 ? " " : RAMP[Math.max(1, Math.min(9, Math.round(lum[i] * 9)))])
   for (const [name, sprites] of libs) {
-    console.log(`\n===== ${name} (${sprites.length} sprites) =====`);
+    console.log(`\n===== ${name} (${sprites.length} sprites) =====`)
     sprites.forEach((s, i) => {
-      const double = (s.flags & 0x08) !== 0;
+      const double = (s.flags & 0x08) !== 0
       console.log(
         `--- [${i}] ${s.xs}x${s.ys} frames=${s.maxn} flags=${s.flags.toString(16)} ${double ? "10fps" : "20fps"} ---`,
-      );
+      )
       if (s.xs > 60 || s.ys > 60) {
-        console.log("    (too large for ascii)");
-        return;
+        console.log("    (too large for ascii)")
+        return
       }
       for (let y = 0; y < s.ys; y++) {
-        let line = "    ";
-        for (let x = 0; x < s.xs; x++) line += ch(s.data[y * s.xs + x]);
-        console.log(line);
+        let line = "    "
+        for (let x = 0; x < s.xs; x++) line += ch(s.data[y * s.xs + x])
+        console.log(line)
       }
-    });
+    })
   }
 }
 
 // --- main ------------------------------------------------------------------
 
-const archive = parseArchive(readFileSync(DAT));
-const pal = parsePalette();
+const archive = parseArchive(readFileSync(DAT))
+const pal = parsePalette()
 const getRaw = (name) => {
-  const raw = archive.get(name);
-  if (!raw) throw new Error(`missing ${name}`);
-  return raw;
-};
-const sliCache = new Map();
+  const raw = archive.get(name)
+  if (!raw) throw new Error(`missing ${name}`)
+  return raw
+}
+const sliCache = new Map()
 const getLib = (level) => {
-  const key = level === "WEAPONS" ? "WEAPONS.SLI" : `LEVEL${level}.SLI`;
-  if (!sliCache.has(key)) sliCache.set(key, decodeSli(getRaw(key)));
-  return sliCache.get(key);
-};
+  const key = level === "WEAPONS" ? "WEAPONS.SLI" : `LEVEL${level}.SLI`
+  if (!sliCache.has(key)) sliCache.set(key, decodeSli(getRaw(key)))
+  return sliCache.get(key)
+}
 
 if (CATALOG) {
   catalog(
-    ["WEAPONS", 0, 1, 2, 3, 4].map((n) => [
-      n === "WEAPONS" ? "WEAPONS" : `LEVEL${n}`,
-      getLib(n),
-    ]),
+    ["WEAPONS", 0, 1, 2, 3, 4].map((n) => [n === "WEAPONS" ? "WEAPONS" : `LEVEL${n}`, getLib(n)]),
     pal,
-  );
+  )
 }
 
-const map = JSON.parse(readFileSync(MAP, "utf8"));
-const scale = map.scale ?? 3;
-mkdirSync(OUT_DIR, { recursive: true });
+const map = JSON.parse(readFileSync(MAP, "utf8"))
+const scale = map.scale ?? 3
+mkdirSync(OUT_DIR, { recursive: true })
 
-const sheets = [];
-const written = new Set();
+const sheets = []
+const written = new Set()
 
 function emitSprite(key, level, index) {
-  if (written.has(key)) return;
-  const sprite = getLib(level)[index];
-  if (!sprite) throw new Error(`${key}: ${level} has no sprite ${index}`);
-  const { width, height, rgba } = renderSprite(sprite, pal, scale);
-  writeFileSync(resolve(OUT_DIR, `${key}.png`), encodePng(width, height, rgba));
-  const double = (sprite.flags & 0x08) !== 0;
+  if (written.has(key)) return
+  const sprite = getLib(level)[index]
+  if (!sprite) throw new Error(`${key}: ${level} has no sprite ${index}`)
+  const { width, height, rgba } = renderSprite(sprite, pal, scale)
+  writeFileSync(resolve(OUT_DIR, `${key}.png`), encodePng(width, height, rgba))
+  const double = (sprite.flags & 0x08) !== 0
   sheets.push({
     key,
     file: `assets/enemies/${key}.png`,
@@ -315,25 +301,25 @@ function emitSprite(key, level, index) {
     frameHeight: sprite.ys * scale,
     frames: sprite.maxn,
     frameRate: double ? 10 : 20,
-  });
-  written.add(key);
+  })
+  written.add(key)
 }
 
 // Fixed extras (ship + shared explosion).
 for (const entry of map.extras) {
-  emitSprite(entry.key, entry.level, entry.sprite);
+  emitSprite(entry.key, entry.level, entry.sprite)
 }
 
 // Shop weapon sprites (WEAPONS.SLI): the bottles mounted next to the ship.
 // Emitted under `wpn-<id>` so the shop, HUD and the in-game mounts share them.
 for (const [id, index] of Object.entries(map.weaponSprites ?? {})) {
-  emitSprite(`wpn-${id}`, "WEAPONS", index);
+  emitSprite(`wpn-${id}`, "WEAPONS", index)
 }
 
 // Projectile sprites (WEAPONS.SLI): `shotstrc.sprite` in WPNPATH.C. Emitted
 // under `shot-<index>`; some are animated (lager, can33).
 for (const index of map.shotSprites ?? []) {
-  emitSprite(`shot-${index}`, "WEAPONS", index);
+  emitSprite(`shot-${index}`, "WEAPONS", index)
 }
 
 // --- build per-level rosters from .TBL/.FOE/.EXP/.DSC ----------------------
@@ -342,43 +328,43 @@ const COMMAND = {
   32768: "fieldOn",
   32769: "fieldOff",
   32771: "mark",
-};
+}
 
 function roleFor(foe) {
   // The DOS "big boss" flag is not set on every end-of-level monster; the
   // final boss of a level carries a negative score instead.
-  if (foe.flags & 0x01 || foe.score < 0) return "boss";
-  if (foe.shield >= 15) return "miniboss";
-  return "chaff";
+  if (foe.flags & 0x01 || foe.score < 0) return "boss"
+  if (foe.shield >= 15) return "miniboss"
+  return "chaff"
 }
 
 // Merge a run of identical (dx,dy) frames into one straight `go` (same 20 Hz
 // timing); a standing run becomes a `wait`. Coords are ×scale.
 function moveStep(run) {
   if (run.dx === 0 && run.dy === 0) {
-    return { t: "wait", ms: run.count * 50 };
+    return { t: "wait", ms: run.count * 50 }
   }
   return {
     t: "go",
     dx: run.dx * run.count * scale,
     dy: run.dy * run.count * scale,
     speed: Math.round(Math.hypot(run.dx, run.dy) * scale * 20 * 100) / 100,
-  };
+  }
 }
 
 function controlStep(c, level, foes, valid) {
-  if (c.k === "mark") return { t: "mark" };
-  if (c.k === "cycle") return { t: "loop" };
+  if (c.k === "mark") return { t: "mark" }
+  if (c.k === "cycle") return { t: "loop" }
   if (c.k === "sprite") {
-    const key = `l${level}-s${c.index}`;
-    emitSprite(key, level, c.index);
-    return { t: "sprite", texture: key };
+    const key = `l${level}-s${c.index}`
+    emitSprite(key, level, c.index)
+    return { t: "sprite", texture: key }
   }
   if (c.k === "release") {
-    const rf = foes[c.foe];
+    const rf = foes[c.foe]
     if (rf && rf.flags & 0x20) {
       // FOE_LINE: an aimed projectile (DOS line mode, speed px/tick).
-      return { t: "shot", speed: rf.speed };
+      return { t: "shot", speed: rf.speed }
     }
     if (rf && valid.has(c.foe) && roleFor(rf) !== "boss") {
       return {
@@ -386,87 +372,87 @@ function controlStep(c, level, foes, valid) {
         kind: `l${level}-f${c.foe}`,
         x: c.dx * scale,
         y: c.dy * scale,
-      };
+      }
     }
   }
-  return null;
+  return null
 }
 
 // Replay a `.FOE` path into the web step list.
 function buildFoePath(foe, level, foebuf, foes, valid) {
-  const steps = [];
-  let run = null;
+  const steps = []
+  let run = null
   const flush = () => {
-    if (!run) return;
-    steps.push(moveStep(run));
-    run = null;
-  };
+    if (!run) return
+    steps.push(moveStep(run))
+    run = null
+  }
   for (const c of decodePath(foebuf, foe.path)) {
     if (c.k === "move") {
-      if (run && run.dx === c.dx && run.dy === c.dy) run.count++;
+      if (run && run.dx === c.dx && run.dy === c.dy) run.count++
       else {
-        flush();
-        run = { dx: c.dx, dy: c.dy, count: 1 };
+        flush()
+        run = { dx: c.dx, dy: c.dy, count: 1 }
       }
-      continue;
+      continue
     }
-    flush();
-    const step = controlStep(c, level, foes, valid);
-    if (step) steps.push(step);
+    flush()
+    const step = controlStep(c, level, foes, valid)
+    if (step) steps.push(step)
   }
-  flush();
-  return steps;
+  flush()
+  return steps
 }
 
-const roster = [];
-const levels = [];
+const roster = []
+const levels = []
 
 for (let level = 0; level < LEVELS; level++) {
-  const foebuf = getRaw(`LEVEL${level}.FOE`);
-  const foes = parseFoe(foebuf);
-  const tbl = parseTbl(getRaw(`LEVEL${level}.TBL`));
-  const explosions = parseExplosionSprites(getRaw(`LEVEL${level}.EXP`));
-  const dsc = parseDsc(getRaw(`LEVEL${level}.DSC`));
+  const foebuf = getRaw(`LEVEL${level}.FOE`)
+  const foes = parseFoe(foebuf)
+  const tbl = parseTbl(getRaw(`LEVEL${level}.TBL`))
+  const explosions = parseExplosionSprites(getRaw(`LEVEL${level}.EXP`))
+  const dsc = parseDsc(getRaw(`LEVEL${level}.DSC`))
 
   // Collect every foe reachable from the attack table (including released minions).
-  const referenced = new Set();
-  const queue = [];
+  const referenced = new Set()
+  const queue = []
   for (const e of tbl) {
     if (e.foe < 0x8000 && !referenced.has(e.foe)) {
-      referenced.add(e.foe);
-      queue.push(e.foe);
+      referenced.add(e.foe)
+      queue.push(e.foe)
     }
   }
   while (queue.length) {
-    const foe = foes[queue.pop()];
-    if (!foe) continue;
+    const foe = foes[queue.pop()]
+    if (!foe) continue
     for (const c of decodePath(foebuf, foe.path)) {
       if (c.k === "release" && !referenced.has(c.foe)) {
-        referenced.add(c.foe);
-        queue.push(c.foe);
+        referenced.add(c.foe)
+        queue.push(c.foe)
       }
     }
   }
 
   // Non-projectile, non-explosion foes form the roster.
-  const valid = new Set();
+  const valid = new Set()
   for (const fi of referenced) {
-    const foe = foes[fi];
-    if (!foe) continue;
-    if (foe.flags & 0x20) continue; // FOE_LINE = projectile
-    if (explosions.has(foe.sprite)) continue; // explosion animation
-    valid.add(fi);
+    const foe = foes[fi]
+    if (!foe) continue
+    if (foe.flags & 0x20) continue // FOE_LINE = projectile
+    if (explosions.has(foe.sprite)) continue // explosion animation
+    valid.add(fi)
   }
 
   // One kind per valid foe. Movement, minion releases and projectiles all
   // come from the foe's own path (`buildFoePath`), exactly like DOS.
-  const kinds = new Map();
+  const kinds = new Map()
   for (const fi of [...valid].sort((a, b) => a - b)) {
-    const foe = foes[fi];
-    const role = roleFor(foe);
-    const kind = `l${level}-f${fi}`;
-    const texture = `l${level}-s${foe.sprite}`;
-    emitSprite(texture, level, foe.sprite);
+    const foe = foes[fi]
+    const role = roleFor(foe)
+    const kind = `l${level}-f${fi}`
+    const texture = `l${level}-s${foe.sprite}`
+    emitSprite(texture, level, foe.sprite)
     const spec = {
       texture,
       // Raw DOS `.FOE` shield: DOS `foehit` subtracts shot power from it.
@@ -481,37 +467,35 @@ for (let level = 0; level < LEVELS; level++) {
       // foe lives, so `play()` pauses the whole attack table until it dies.
       stopcount: (foe.flags & 0x08) !== 0 || undefined,
       path: buildFoePath(foe, level, foebuf, foes, valid),
-    };
-    kinds.set(kind, spec);
-    roster.push({ kind, spec });
+    }
+    kinds.set(kind, spec)
+    roster.push({ kind, spec })
   }
 
   // Attack schedule (frame count / 20 Hz → seconds, coords ×3).
-  const firstKind = kinds.keys().next().value ?? "l0-f0";
-  const spawns = [];
-  const marks = [];
-  let bosses = 0;
-  let firstBossAt = Number.POSITIVE_INFINITY;
+  const firstKind = kinds.keys().next().value ?? "l0-f0"
+  const spawns = []
+  const marks = []
+  let bosses = 0
+  let firstBossAt = Number.POSITIVE_INFINITY
   for (const e of tbl) {
-    const at = e.at / 20;
+    const at = e.at / 20
     if (e.foe >= 0x8000) {
-      const cmd = COMMAND[e.foe];
-      if (!cmd) continue;
-      spawns.push({ at, x: 0, y: 0, kind: firstKind, cmd });
-      if (cmd === "mark") marks.push(at);
-      continue;
+      const cmd = COMMAND[e.foe]
+      if (!cmd) continue
+      spawns.push({ at, x: 0, y: 0, kind: firstKind, cmd })
+      if (cmd === "mark") marks.push(at)
+      continue
     }
-    const kind = `l${level}-f${e.foe}`;
-    if (!kinds.has(kind)) continue;
-    spawns.push({ at, x: e.x * scale, y: e.y * scale, kind });
+    const kind = `l${level}-f${e.foe}`
+    if (!kinds.has(kind)) continue
+    spawns.push({ at, x: e.x * scale, y: e.y * scale, kind })
     if (kinds.get(kind).role === "boss") {
-      bosses++;
-      firstBossAt = Math.min(firstBossAt, at);
+      bosses++
+      firstBossAt = Math.min(firstBossAt, at)
     }
   }
-  const checkpoints = marks
-    .filter((t) => t < firstBossAt)
-    .sort((a, b) => a - b);
+  const checkpoints = marks.filter((t) => t < firstBossAt).sort((a, b) => a - b)
 
   levels.push({
     name: dsc.text,
@@ -521,7 +505,7 @@ for (let level = 0; level < LEVELS; level++) {
     spawns,
     checkpoints,
     bosses,
-  });
+  })
 }
 
 // contact sheet -------------------------------------------------------------
@@ -533,7 +517,7 @@ const cells = sheets
       <figcaption>${s.key}<br>${s.frameWidth}×${s.frameHeight} · ${s.frames}f · ${s.frameRate}fps</figcaption>
     </figure>`,
   )
-  .join("\n");
+  .join("\n")
 writeFileSync(
   resolve(OUT_DIR, "contact.html"),
   `<!doctype html>
@@ -557,7 +541,7 @@ ${cells}
 </body>
 </html>
 `,
-);
+)
 
 // generated TS metadata -----------------------------------------------------
 
@@ -583,9 +567,9 @@ ${sheets
   .join("\n")}
 ];
 `,
-);
+)
 
-const kindList = roster.map((r) => r.kind);
+const kindList = roster.map((r) => r.kind)
 writeFileSync(
   ROSTERS_OUT,
   `// Generated by scripts/extract-sprites.mjs from original_game/beer_exe/BEER.DAT.
@@ -616,9 +600,7 @@ export interface FoeSpec {
 }
 
 export const FOES: Record<FoeKind, FoeSpec> = {
-${roster
-  .map((r) => `\t${JSON.stringify(r.kind)}: ${JSON.stringify(r.spec)},`)
-  .join("\n")}
+${roster.map((r) => `\t${JSON.stringify(r.kind)}: ${JSON.stringify(r.spec)},`).join("\n")}
 };
 
 export type RosterCommand = "fieldOn" | "fieldOff" | "mark";
@@ -642,10 +624,10 @@ export interface RosterLevel {
 
 export const ROSTERS: RosterLevel[] = ${JSON.stringify(levels, null, "\t")};
 `,
-);
+)
 
 console.log(
   `wrote ${sheets.length} PNGs + contact.html; ${roster.length} foes across ${levels.length} levels`,
-);
-console.log(`wrote ${SHEETS_OUT}`);
-console.log(`wrote ${ROSTERS_OUT}`);
+)
+console.log(`wrote ${SHEETS_OUT}`)
+console.log(`wrote ${ROSTERS_OUT}`)

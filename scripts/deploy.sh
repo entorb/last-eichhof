@@ -1,11 +1,19 @@
 #!/bin/sh
-
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
 
 # exit upon error
 set -e
 
+# cleanup
+rm -f .DS_Store
+rm -f -- ./*/.DS_Store
+
+echo "## Checks"
+echo "### Code checks"
 ./scripts/run_checks.sh
 
+echo "## Frontend Build and Transfer"
 pnpm run build
-rsync -rhv --delete --no-perms dist/* entorb@entorb.net:html/last-eichhof/
+rsync -rhv --delete --no-perms dist/ entorb@entorb.net:html/last-eichhof/
+
+echo "## DONE"
