@@ -7,15 +7,15 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": [
-      "**",
-      "!public/assets/sounds/audition.html",
-      "!public/assets/enemies/contact.html"
-    ]
+    "includes": ["**", "!public/assets/sounds/audition.html", "!public/assets/enemies/contact.html"]
   },
   "formatter": {
     "enabled": true,
-    "indentStyle": "space"
+    "indentWidth": 2,
+    "indentStyle": "space",
+    "lineEnding": "lf",
+    "lineWidth": 100,
+    "attributePosition": "multiline"
   },
   "linter": {
     "enabled": true,
@@ -25,7 +25,8 @@
   },
   "javascript": {
     "formatter": {
-      "quoteStyle": "double"
+      "quoteStyle": "double",
+      "semicolons": "asNeeded"
     }
   },
   "assist": {
