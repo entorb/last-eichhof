@@ -1,51 +1,53 @@
-import { SPRITE_SHEETS } from "./enemySprites";
+import { SPRITE_SHEETS } from "./enemySprites"
 
 // Placement grid: the DOS shop moved/placed on a 4 px grid, scaled 3x.
-export const GRID = 12;
-export const MAX_WEAPONS = 7;
-export const SELL_RATE = 3 / 4;
+export const GRID = 12
+export const MAX_WEAPONS = 7
+export const SELL_RATE = 3 / 4
 
-export type ShotKind = "straight" | "homing" | "reflect";
+export type ShotKind = "straight" | "homing" | "reflect"
 
 export interface Emitter {
   // Release offset from the mount (DOS `shotstrc.shotx/shoty`, ×3 for web px).
-  ox: number;
-  oy: number;
-  vx: number;
-  vy: number;
-  power: number;
-  kind: ShotKind;
+  ox: number
+  oy: number
+  vx: number
+  vy: number
+  power: number
+  kind: ShotKind
   // DOS projectile sprite key (`shot-<n>`, WEAPONS.SLI).
-  sprite: string;
+  sprite: string
   // Lifetime in seconds for non-straight shots (DOS path length / 20 Hz).
-  life?: number;
-  release?: Release;
+  life?: number
+  release?: Release
 }
 
 export interface Release {
-  after: number;
-  shots: Omit<Emitter, "release">[];
+  after: number
+  shots: Omit<Emitter, "release">[]
 }
 
 export interface Weapon {
-  id: string;
-  name: string;
-  cost: number;
-  period: number;
-  w: number;
-  h: number;
-  tint: number;
-  starter: boolean;
-  emitters: Emitter[];
+  id: string
+  name: string
+  cost: number
+  period: number
+  w: number
+  h: number
+  tint: number
+  starter: boolean
+  emitters: Emitter[]
 }
 
-const UP = (
-  power: number,
-  speed: number,
-  ox: number,
-  oy: number,
-  sprite: string,
-): Emitter => ({ ox, oy, vx: 0, vy: -speed, power, kind: "straight", sprite });
+const UP = (power: number, speed: number, ox: number, oy: number, sprite: string): Emitter => ({
+  ox,
+  oy,
+  vx: 0,
+  vy: -speed,
+  power,
+  kind: "straight",
+  sprite,
+})
 
 // Exactly the nine DOS arms (`.WPN`), each firing its DOS shot script
 // (WPNPATH.C). `.WPN` `shot` index → shot header in `WEAPONS.SHT`:
@@ -303,25 +305,23 @@ export const WEAPONS: Weapon[] = [
     starter: false,
     emitters: [UP(6, 600, 12, -36, "shot-15")],
   },
-];
+]
 
-const WEAPON_BY_ID: Record<string, Weapon> = Object.fromEntries(
-  WEAPONS.map((w) => [w.id, w]),
-);
+const WEAPON_BY_ID: Record<string, Weapon> = Object.fromEntries(WEAPONS.map((w) => [w.id, w]))
 
 export function weaponById(id: string): Weapon {
-  const w = WEAPON_BY_ID[id];
-  if (!w) throw new Error(`unknown weapon ${id}`);
-  return w;
+  const w = WEAPON_BY_ID[id]
+  if (!w) throw new Error(`unknown weapon ${id}`)
+  return w
 }
 
-export type UpgradeKind = "speedup" | "extralife";
+export type UpgradeKind = "speedup" | "extralife"
 
 export interface Upgrade {
-  id: string;
-  name: string;
-  cost: number;
-  kind: UpgradeKind;
+  id: string
+  name: string
+  cost: number
+  kind: UpgradeKind
 }
 
 // The two DOS `.WPN` upgrade arms (exact names): "I WANT TO BE FAST" 200,
@@ -329,12 +329,12 @@ export interface Upgrade {
 export const UPGRADES: Upgrade[] = [
   { id: "speedup", name: "I WANT TO BE FAST", cost: 200, kind: "speedup" },
   { id: "extralife", name: "BONUS GUTTERE", cost: 30, kind: "extralife" },
-];
+]
 
 export interface Placement {
-  defId: string;
-  dx: number;
-  dy: number;
+  defId: string
+  dx: number
+  dy: number
 }
 
 // DOS `weaponmanager`: `deltam = (score - scoreold + 1500) / 2500; money += deltam * 5`.
@@ -342,126 +342,104 @@ export interface Placement {
 // match negative deltas (a level can end score-negative when boss kills cost
 // more than the chaff is worth).
 export function moneyForLevel(scoreDelta: number): number {
-  return Math.trunc((scoreDelta + 1500) / 2500) * 5;
+  return Math.trunc((scoreDelta + 1500) / 2500) * 5
 }
 
 export function sellValue(cost: number): number {
-  return Math.floor(cost * SELL_RATE);
+  return Math.floor(cost * SELL_RATE)
 }
 
 export function snap(v: number): number {
-  return Math.round(v / GRID) * GRID;
+  return Math.round(v / GRID) * GRID
 }
 
 // Direction/damage summary for the shop display. `dmg` is the main shot only
 // (the arm's own power) — released sub-shots are not counted.
 export function weaponStats(w: Weapon): { dir: string; dmg: number } {
-  const kinds = new Set(w.emitters.map((e) => e.kind));
-  const shots = w.emitters.flatMap((e) =>
-    e.release ? [e, ...e.release.shots] : [e],
-  );
-  const dmg = w.emitters.reduce((sum, e) => sum + e.power, 0);
-  let up = 0;
-  let down = 0;
-  let side = 0;
+  const kinds = new Set(w.emitters.map((e) => e.kind))
+  const shots = w.emitters.flatMap((e) => (e.release ? [e, ...e.release.shots] : [e]))
+  const dmg = w.emitters.reduce((sum, e) => sum + e.power, 0)
+  let up = 0
+  let down = 0
+  let side = 0
   for (const s of shots) {
-    if (s.vy < 0) up++;
-    else if (s.vy > 0) down++;
-    if (s.vx !== 0) side++;
+    if (s.vy < 0) up++
+    else if (s.vy > 0) down++
+    if (s.vx !== 0) side++
   }
-  if (kinds.has("homing")) return { dir: "HOMING", dmg };
-  if (kinds.has("reflect")) return { dir: "REFLECT", dmg };
-  if (up > 0 && side > 0) return { dir: "V-PATTERN", dmg };
-  if (up > 0) return { dir: "UP", dmg };
-  if (down > 0) return { dir: "DOWN", dmg };
-  if (side > 0) return { dir: "SIDES", dmg };
-  return { dir: "?", dmg };
+  if (kinds.has("homing")) return { dir: "HOMING", dmg }
+  if (kinds.has("reflect")) return { dir: "REFLECT", dmg }
+  if (up > 0 && side > 0) return { dir: "V-PATTERN", dmg }
+  if (up > 0) return { dir: "UP", dmg }
+  if (down > 0) return { dir: "DOWN", dmg }
+  if (side > 0) return { dir: "SIDES", dmg }
+  return { dir: "?", dmg }
 }
 
 export function placementsOverlap(a: Placement, b: Placement): boolean {
-  const wa = weaponById(a.defId);
-  const wb = weaponById(b.defId);
-  return (
-    Math.abs(a.dx - b.dx) < (wa.w + wb.w) / 2 &&
-    Math.abs(a.dy - b.dy) < (wa.h + wb.h) / 2
-  );
+  const wa = weaponById(a.defId)
+  const wb = weaponById(b.defId)
+  return Math.abs(a.dx - b.dx) < (wa.w + wb.w) / 2 && Math.abs(a.dy - b.dy) < (wa.h + wb.h) / 2
 }
 
-export function canPlace(
-  loadout: Placement[],
-  candidate: Placement,
-  ignoreIndex = -1,
-): boolean {
-  return loadout.every(
-    (p, i) => i === ignoreIndex || !placementsOverlap(p, candidate),
-  );
+export function canPlace(loadout: Placement[], candidate: Placement, ignoreIndex = -1): boolean {
+  return loadout.every((p, i) => i === ignoreIndex || !placementsOverlap(p, candidate))
 }
 
 export function runWeaponsSelfCheck(): void {
   const assert = (cond: boolean, msg: string) => {
-    if (!cond) throw new Error(`selfcheck: ${msg}`);
-  };
+    if (!cond) throw new Error(`selfcheck: ${msg}`)
+  }
 
-  assert(moneyForLevel(0) === 0, "money floor base");
-  assert(moneyForLevel(999) === 0, "money just below step");
-  assert(moneyForLevel(1000) === 5, "money first step");
-  assert(moneyForLevel(10000) === 20, "money large");
-  assert(moneyForLevel(-3000) === 0, "money truncates toward zero");
-  assert(moneyForLevel(-4000) === -5, "money can go negative");
-  assert(sellValue(2000) === 1500, "sell 75%");
-  assert(sellValue(601) === 450, "sell floors");
+  assert(moneyForLevel(0) === 0, "money floor base")
+  assert(moneyForLevel(999) === 0, "money just below step")
+  assert(moneyForLevel(1000) === 5, "money first step")
+  assert(moneyForLevel(10000) === 20, "money large")
+  assert(moneyForLevel(-3000) === 0, "money truncates toward zero")
+  assert(moneyForLevel(-4000) === -5, "money can go negative")
+  assert(sellValue(2000) === 1500, "sell 75%")
+  assert(sellValue(601) === 450, "sell floors")
 
-  assert(weaponById("can33").cost === 240, "dos cost can33");
-  assert(weaponById("kanone").cost === 540, "dos cost kanone");
-  assert(UPGRADES[1]?.cost === 30, "dos cost extra life");
+  assert(weaponById("can33").cost === 240, "dos cost can33")
+  assert(weaponById("kanone").cost === 540, "dos cost kanone")
+  assert(UPGRADES[1]?.cost === 30, "dos cost extra life")
 
-  assert(snap(0) === 0, "snap origin");
-  assert(snap(12) === 12, "snap on grid");
-  assert(snap(18) === 24, "snap up");
-  assert(snap(-18) === -12, "snap negative");
+  assert(snap(0) === 0, "snap origin")
+  assert(snap(12) === 12, "snap on grid")
+  assert(snap(18) === 24, "snap up")
+  assert(snap(-18) === -12, "snap negative")
 
-  const a: Placement = { defId: "lager", dx: 0, dy: 0 };
-  const b: Placement = { defId: "lager", dx: 10, dy: 0 };
-  const c: Placement = { defId: "lager", dx: 40, dy: 0 };
-  assert(placementsOverlap(a, b), "overlap close");
-  assert(!placementsOverlap(a, c), "no overlap far");
-  assert(!canPlace([a], b), "canPlace rejects overlap");
-  assert(canPlace([a], c), "canPlace accepts clear");
-  assert(canPlace([a], a, 0), "canPlace ignores self");
+  const a: Placement = { defId: "lager", dx: 0, dy: 0 }
+  const b: Placement = { defId: "lager", dx: 10, dy: 0 }
+  const c: Placement = { defId: "lager", dx: 40, dy: 0 }
+  assert(placementsOverlap(a, b), "overlap close")
+  assert(!placementsOverlap(a, c), "no overlap far")
+  assert(!canPlace([a], b), "canPlace rejects overlap")
+  assert(canPlace([a], c), "canPlace accepts clear")
+  assert(canPlace([a], a, 0), "canPlace ignores self")
 
-  assert(
-    WEAPONS[0]?.starter === true && WEAPONS[0].cost === 0,
-    "starter weapon",
-  );
+  assert(WEAPONS[0]?.starter === true && WEAPONS[0].cost === 0, "starter weapon")
   assert(
     WEAPONS.every((w) => w.emitters.length > 0 && w.period > 0),
     "weapons complete",
-  );
-  assert(
-    new Set(WEAPONS.map((w) => w.id)).size === WEAPONS.length,
-    "weapon ids unique",
-  );
-  assert(WEAPONS.filter((w) => w.starter).length === 1, "exactly one starter");
+  )
+  assert(new Set(WEAPONS.map((w) => w.id)).size === WEAPONS.length, "weapon ids unique")
+  assert(WEAPONS.filter((w) => w.starter).length === 1, "exactly one starter")
   for (const w of WEAPONS) {
-    const sheet = SPRITE_SHEETS.find((s) => s.key === `wpn-${w.id}`);
+    const sheet = SPRITE_SHEETS.find((s) => s.key === `wpn-${w.id}`)
     if (sheet) {
-      assert(
-        sheet.frameWidth === w.w && sheet.frameHeight === w.h,
-        `mount size ${w.id}`,
-      );
+      assert(sheet.frameWidth === w.w && sheet.frameHeight === w.h, `mount size ${w.id}`)
     }
-    const shots = w.emitters.flatMap((e) =>
-      e.release ? [e, ...e.release.shots] : [e],
-    );
+    const shots = w.emitters.flatMap((e) => (e.release ? [e, ...e.release.shots] : [e]))
     for (const s of shots) {
       assert(
         SPRITE_SHEETS.some((sheet) => sheet.key === s.sprite),
         `shot sprite ${w.id}: ${s.sprite}`,
-      );
+      )
     }
   }
   // The nine DOS arms (`.WPN`), no more, no less.
-  assert(WEAPONS.length === 9, "nine dos weapons");
+  assert(WEAPONS.length === 9, "nine dos weapons")
   for (const id of [
     "pony",
     "stange",
@@ -472,28 +450,24 @@ export function runWeaponsSelfCheck(): void {
     "kanone",
     "pokal",
   ]) {
-    assert(id in WEAPON_BY_ID, `has weapon ${id}`);
+    assert(id in WEAPON_BY_ID, `has weapon ${id}`)
   }
   assert(
-    weaponById("pokal").emitters.some(
-      (e) => (e.release?.shots.length ?? 0) > 0,
-    ),
+    weaponById("pokal").emitters.some((e) => (e.release?.shots.length ?? 0) > 0),
     "pokal releases sub-shots",
-  );
+  )
   assert(
     weaponById("pony").emitters.some((e) => e.release),
     "pony reflector releases sub-shot",
-  );
+  )
   assert(
     weaponById("barbara").emitters.some((e) => e.release),
     "barbara v-shot releases sub-shot",
-  );
+  )
   assert(
-    WEAPONS.every((w) =>
-      w.emitters.every((e) => !e.release || e.release.after > 0),
-    ),
+    WEAPONS.every((w) => w.emitters.every((e) => !e.release || e.release.after > 0)),
     "release delay positive",
-  );
+  )
 
   const stats: Record<string, [string, number]> = {
     lager: ["UP", 2],
@@ -505,13 +479,13 @@ export function runWeaponsSelfCheck(): void {
     chuebeli: ["DOWN", 3],
     pokal: ["V-PATTERN", 6],
     kanone: ["UP", 6],
-  };
+  }
   for (const [id, [dir, dmg]] of Object.entries(stats)) {
-    assert(id in WEAPON_BY_ID, `stats weapon ${id}`);
-    const got = weaponStats(weaponById(id));
+    assert(id in WEAPON_BY_ID, `stats weapon ${id}`)
+    const got = weaponStats(weaponById(id))
     assert(
       got.dir === dir && got.dmg === dmg,
       `stats ${id}: got ${got.dir}/${got.dmg}, want ${dir}/${dmg}`,
-    );
+    )
   }
 }
