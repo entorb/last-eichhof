@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vite"
 
 export default defineConfig({
   root: "src",
@@ -8,12 +8,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes("node_modules/phaser")) return "phaser";
+          if (id.includes("node_modules/phaser")) return "phaser"
         },
       },
     },
   },
   server: {
-    port: 8080,
+    host: true,
+    port: 5173,
   },
-});
+})
