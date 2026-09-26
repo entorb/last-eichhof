@@ -1,4 +1,15 @@
 import { type GameObjects, Math as PhaserMath, Scene } from "phaser"
+import {
+  applySkin,
+  CORK_H,
+  CORK_W,
+  modernKey,
+  PELLET_H,
+  PELLET_W,
+  runModernSkinSelfCheck,
+  sheetKeys,
+  texKey,
+} from "../art/skin"
 import { generateUiIcons, runUiIconsSelfCheck, UI_ICON_KEYS } from "../art/uiIcons"
 import { getMusic, initAudio, runAudioSelfCheck, runSoundsSelfCheck } from "../audio"
 import { SPRITE_SHEETS } from "../data/enemySprites"
@@ -30,7 +41,9 @@ export class Boot extends Scene {
   }
 
   create() {
-    this.makeSprite("cork", 12, 26, (g) => {
+    applySkin(this)
+
+    this.makeSprite("cork", CORK_W, CORK_H, (g) => {
       g.fillStyle(0x9c7b45)
       g.fillRoundedRect(0, 0, 12, 26, 4)
       g.fillStyle(0xcaa46a)
@@ -39,7 +52,7 @@ export class Boot extends Scene {
       g.fillRect(3, 4, 2, 16)
     })
 
-    this.makeSprite("pellet", 10, 10, (g) => {
+    this.makeSprite("pellet", PELLET_W, PELLET_H, (g) => {
       g.fillStyle(0xff5c5c)
       g.fillCircle(5, 5, 5)
       g.fillStyle(0xffd0d0)
@@ -65,34 +78,42 @@ export class Boot extends Scene {
   private createAnims() {
     for (const sheet of SPRITE_SHEETS) {
       if (sheet.frames <= 1) continue
-      this.anims.create({
-        key: sheet.key,
-        frames: this.anims.generateFrameNumbers(sheet.key, {
-          start: 0,
-          end: sheet.frames - 1,
-        }),
-        frameRate: sheet.frameRate,
-        repeat: sheet.key === "explosion" ? 0 : -1,
-      })
+      for (const key of sheetKeys(sheet)) {
+        if (this.anims.exists(key)) continue
+        this.anims.create({
+          key,
+          frames: this.anims.generateFrameNumbers(key, {
+            start: 0,
+            end: sheet.frames - 1,
+          }),
+          frameRate: sheet.frameRate,
+          repeat: sheet.key === "explosion" ? 0 : -1,
+        })
+      }
     }
   }
 
   private devSelfChecks() {
     this.assertTextures(
-      SPRITE_SHEETS.map((s) => s.key),
+      SPRITE_SHEETS.flatMap((s) => sheetKeys(s)),
       "texture",
     )
     this.assertTextures(["cork", "pellet", "stars-far", "stars-near"], "texture")
+    this.assertTextures(
+      ["cork", "pellet", ...SPRITE_SHEETS.map((s) => s.key)].map(modernKey),
+      "modern texture",
+    )
     this.assertTextures(UI_ICON_KEYS, "icon")
     this.assertTextures(
-      (Object.keys(FOES) as (keyof typeof FOES)[]).map((kind) => FOES[kind].texture),
+      (Object.keys(FOES) as (keyof typeof FOES)[]).map((kind) => texKey(FOES[kind].texture)),
       "foe texture",
     )
     this.assertTextures(
-      WEAPONS.map((w) => `wpn-${w.id}`),
+      WEAPONS.map((w) => texKey(`wpn-${w.id}`)),
       "icon",
     )
 
+    runModernSkinSelfCheck()
     runPathSelfCheck()
     runLevelsSelfCheck()
     runRunSelfCheck()

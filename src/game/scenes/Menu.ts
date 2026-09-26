@@ -8,6 +8,8 @@ import {
   clampScroll,
   DIFFICULTY,
   DIFFICULTY_ORDER,
+  GRAPHICS,
+  GRAPHICS_ORDER,
   loadResults,
   loadSettings,
   type ResultSort,
@@ -319,6 +321,7 @@ export class Menu extends Scene {
           cycle: (dir) => this.cycleDifficulty(dir),
           icon: UI_ICONS.difficulty,
         },
+        this.graphicsEntry(),
         {
           label: () => "SCORES",
           activate: () => this.goto("scores"),
@@ -331,11 +334,11 @@ export class Menu extends Scene {
         },
       ]
       if (fullscreenEntry) defs.splice(2, 0, fullscreenEntry)
-      this.addItems(defs, 246, 58)
-      this.addDivider(PLAY.cx, 528, 460)
-      this.addActionRow(PLAY.cx, 562)
-      this.statsText = this.addStatic(PLAY.cx, 606, this.globalGamesLabel(), 20, DIM).setOrigin(0.5)
-      this.addLinkRow(PLAY.cx, 644)
+      this.addItems(defs, 228, 56)
+      this.addDivider(PLAY.cx, 556, 460)
+      this.addActionRow(PLAY.cx, 588)
+      this.statsText = this.addStatic(PLAY.cx, 626, this.globalGamesLabel(), 20, DIM).setOrigin(0.5)
+      this.addLinkRow(PLAY.cx, 662)
       this.loadGlobalGames()
     } else if (this.mode === "options") {
       this.addStatic(PLAY.cx, 205, "OPTIONS", 34, WHITE).setOrigin(0.5)
@@ -353,6 +356,7 @@ export class Menu extends Scene {
           cycle: () => this.toggleMusic(),
           icon: UI_ICONS.music,
         },
+        this.graphicsEntry(),
         {
           label: () => "BACK",
           activate: () => this.goto("menu"),
@@ -399,6 +403,7 @@ export class Menu extends Scene {
           cycle: () => this.toggleMusic(),
           icon: UI_ICONS.music,
         },
+        this.graphicsEntry(),
         {
           label: () => "END GAME",
           activate: () => this.endGame(),
@@ -609,6 +614,25 @@ export class Menu extends Scene {
     )
     saveSettings({ ...settings, difficulty: next })
     this.refresh()
+  }
+
+  // The skin is re-pointed where it is drawn (`Game` on resume, `Game`/`Shop` in
+  // `create`), so the menu only has to persist the choice and redraw its label.
+  private cycleGraphics(dir: number) {
+    const settings = loadSettings()
+    const idx = GRAPHICS_ORDER.indexOf(settings.graphics)
+    const next = at(GRAPHICS_ORDER, (idx + dir + GRAPHICS_ORDER.length) % GRAPHICS_ORDER.length)
+    saveSettings({ ...settings, graphics: next })
+    this.refresh()
+  }
+
+  private graphicsEntry(): Item {
+    return {
+      label: () => `GRAPHICS: ${GRAPHICS[loadSettings().graphics]}`,
+      activate: () => this.cycleGraphics(1),
+      cycle: (dir) => this.cycleGraphics(dir),
+      icon: UI_ICONS.graphics,
+    }
   }
 
   private toggleAutoFire() {

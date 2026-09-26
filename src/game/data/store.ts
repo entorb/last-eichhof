@@ -1,5 +1,6 @@
 export type Difficulty = "easy" | "normal" | "hard"
 export type ControlsMode = "auto" | "touch" | "keyboard"
+export type GraphicsMode = "original" | "modern"
 
 export interface GameResult {
   score: number
@@ -13,6 +14,7 @@ export interface Settings {
   controls: ControlsMode
   autoFire: boolean
   music: boolean
+  graphics: GraphicsMode
 }
 
 export const DIFFICULTY: Record<Difficulty, { label: string; lives: number; foeSpeed: number }> = {
@@ -22,6 +24,13 @@ export const DIFFICULTY: Record<Difficulty, { label: string; lives: number; foeS
 }
 
 export const DIFFICULTY_ORDER: Difficulty[] = ["easy", "normal", "hard"]
+
+export const GRAPHICS: Record<GraphicsMode, string> = {
+  original: "ORIGINAL",
+  modern: "MODERN",
+}
+
+export const GRAPHICS_ORDER: GraphicsMode[] = ["original", "modern"]
 
 export type ResultSort = "points" | "date"
 
@@ -33,6 +42,7 @@ export const DEFAULT_SETTINGS: Settings = {
   controls: "auto",
   autoFire: false,
   music: true,
+  graphics: "modern",
 }
 
 function isResult(v: unknown): v is GameResult {
@@ -77,6 +87,11 @@ export function clampScroll(scroll: number, total: number, rows: number): number
   return Math.max(0, Math.min(Math.max(0, total - rows), scroll))
 }
 
+function parseGraphics(value: unknown): GraphicsMode {
+  if (value === "original" || value === "modern") return value
+  return DEFAULT_SETTINGS.graphics
+}
+
 export function parseSettings(raw: string | null): Settings {
   if (!raw) return { ...DEFAULT_SETTINGS }
   let data: unknown
@@ -97,7 +112,7 @@ export function parseSettings(raw: string | null): Settings {
       : DEFAULT_SETTINGS.controls
   const autoFire = typeof obj.autoFire === "boolean" ? obj.autoFire : DEFAULT_SETTINGS.autoFire
   const music = typeof obj.music === "boolean" ? obj.music : DEFAULT_SETTINGS.music
-  return { difficulty, controls, autoFire, music }
+  return { difficulty, controls, autoFire, music, graphics: parseGraphics(obj.graphics) }
 }
 
 function safeGet(key: string): string | null {
@@ -210,4 +225,10 @@ export function runStoreSelfCheck(): void {
   assert(parseSettings(null).music === true, "music defaults on")
   assert(parseSettings(JSON.stringify({ music: false })).music === false, "valid music")
   assert(parseSettings(JSON.stringify({ music: "yes" })).music === true, "invalid music")
+  assert(parseSettings(null).graphics === "modern", "graphics defaults modern")
+  assert(
+    parseSettings(JSON.stringify({ graphics: "original" })).graphics === "original",
+    "valid graphics",
+  )
+  assert(parseSettings(JSON.stringify({ graphics: "neon" })).graphics === "modern", "bad graphics")
 }

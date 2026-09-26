@@ -1,9 +1,38 @@
 import { describe, expect, it } from "vitest"
-import { loadSettings, runStoreSelfCheck, saveSettings } from "./store"
+import {
+  GRAPHICS_ORDER,
+  loadSettings,
+  parseSettings,
+  runStoreSelfCheck,
+  saveSettings,
+} from "./store"
 
 describe("runStoreSelfCheck", () => {
   it("passes", () => {
     expect(() => runStoreSelfCheck()).not.toThrow()
+  })
+})
+
+describe("graphics setting", () => {
+  it("defaults to modern and rejects junk", () => {
+    expect(parseSettings(null).graphics).toBe("modern")
+    expect(parseSettings("garbage").graphics).toBe("modern")
+    expect(parseSettings(JSON.stringify({ graphics: "original" })).graphics).toBe("original")
+    expect(parseSettings(JSON.stringify({ graphics: "pixel" })).graphics).toBe("modern")
+  })
+
+  it("cycles through both modes", () => {
+    expect(GRAPHICS_ORDER).toEqual(["original", "modern"])
+    const len = GRAPHICS_ORDER.length
+    const at = (i: number) => {
+      const mode = GRAPHICS_ORDER[(i + len) % len]
+      if (!mode) throw new Error(`no mode at ${i}`)
+      return mode
+    }
+    const idx = GRAPHICS_ORDER.indexOf("modern")
+    const next = at(idx + 1)
+    expect(next).toBe("original")
+    expect(at(GRAPHICS_ORDER.indexOf(next) - 1)).toBe("modern")
   })
 })
 

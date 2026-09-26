@@ -1,5 +1,6 @@
 import { type GameObjects, Geom, Input, Scene, Scenes, TintModes, type Types } from "phaser"
 import VirtualJoyStick from "phaser4-rex-plugins/plugins/virtualjoystick.js"
+import { applySkin, dosKey, graphicsMode, texKey } from "../art/skin"
 import { getMusic, getSamples, getSfx } from "../audio"
 import { FOES, type FoeKind, type RosterSpawn } from "../data/foeRosters"
 import { getLevel, LEVELS } from "../data/levels"
@@ -131,10 +132,12 @@ export class Game extends Scene {
   }
 
   create() {
+    applySkin(this)
     const settings = loadSettings()
     this.autoFire = settings.autoFire
     this.events.on(Scenes.Events.RESUME, () => {
       this.autoFire = loadSettings().autoFire
+      this.reskin()
     })
     this.touch = resolveTouchControls(settings.controls, this.sys.game.device.input.touch)
     this.diff = DIFFICULTY[settings.difficulty]
@@ -150,9 +153,9 @@ export class Game extends Scene {
       .setAlpha(0.7)
 
     this.ship = this.add
-      .sprite(PLAY.w / 2, BOTTOM - 70, "ship")
+      .sprite(PLAY.w / 2, BOTTOM - 70, texKey("ship"))
       .setDepth(10)
-      .play("ship")
+      .play(texKey("ship"))
 
     this.hud = this.add.graphics().setDepth(100)
     this.drawHud()
@@ -514,10 +517,10 @@ export class Game extends Scene {
   private makeShot(x: number, y: number, tint: number, em: Emitter): Shot {
     // DOS projectile art (`shot-<n>`); fall back to a tinted cork if a sheet
     // is missing (the procedural fallback Boot also uses for mount icons).
-    const texture = this.textures.exists(em.sprite) ? em.sprite : "cork"
+    const texture = texKey(this.textures.exists(texKey(em.sprite)) ? em.sprite : "cork")
     const sprite = this.add.sprite(x + em.ox, y + em.oy, texture).setDepth(5)
     if (this.anims.exists(texture)) sprite.play(texture)
-    else if (texture === "cork") sprite.setTint(tint)
+    else if (dosKey(texture) === "cork") sprite.setTint(tint)
     return {
       sprite,
       vx: em.vx,
@@ -652,7 +655,7 @@ export class Game extends Scene {
         }
         break
       default: {
-        const texture = ev.texture
+        const texture = texKey(ev.texture)
         e.sprite.setTexture(texture)
         if (this.anims.exists(texture)) e.sprite.play(texture)
       }
@@ -884,7 +887,7 @@ export class Game extends Scene {
   private spawnEnemy(kind: FoeKind, x: number, y: number, scheduled = true) {
     const spec = FOES[kind]
     const runner = new PathRunner(pathFor(kind), { x, y })
-    const texture = spec.texture
+    const texture = texKey(spec.texture)
     const sprite = this.add.sprite(x, y, texture).setDepth(spec.role === "boss" ? 2 : 1)
     if (this.anims.exists(texture)) sprite.play(texture)
     const enemy: Enemy = {
@@ -907,7 +910,7 @@ export class Game extends Scene {
     const dy = this.ship.y - y
     const d = Math.max(Math.abs(dx), Math.abs(dy)) || 1
     const v = speed * 60
-    const sprite = this.add.image(x, y, "pellet").setDepth(4)
+    const sprite = this.add.image(x, y, texKey("pellet")).setDepth(4)
     getSfx().enemyShot()
     this.enemyShots.push({
       sprite,
@@ -969,7 +972,7 @@ export class Game extends Scene {
   }
 
   private spawnExplosion(x: number, y: number) {
-    const key = "explosion"
+    const key = texKey("explosion")
     const sprite = this.add.sprite(x, y, key).setDepth(20).play(key)
     this.explosions.push({ sprite, age: 0, life: 0.5 })
   }
@@ -1000,11 +1003,34 @@ export class Game extends Scene {
     this.mounts = this.loadout
       .filter((m) => !m.weapon.starter)
       .map((m) => {
-        const key = `wpn-${m.weapon.id}`
+        const key = texKey(`wpn-${m.weapon.id}`)
         const sprite = this.add.sprite(this.ship.x + m.dx, this.ship.y + m.dy, key).setDepth(11)
         if (this.anims.exists(key)) sprite.play(key)
         return { sprite, dx: m.dx, dy: m.dy }
       })
+  }
+
+  // A mode switch from the pause overlay happens on a live, paused Game, so the
+  // new skin is applied by re-pointing every sprite rather than by regenerating
+  // the textures they already reference.
+  private reskin() {
+    const before = graphicsMode()
+    applySkin(this)
+    if (graphicsMode() === before) return
+    this.restyle(this.ship)
+    for (const e of this.enemies) this.restyle(e.sprite)
+    for (const s of this.shots) this.restyle(s.sprite)
+    for (const b of this.enemyShots) b.sprite.setTexture(texKey("pellet"))
+    for (const x of this.explosions) this.restyle(x.sprite)
+    this.buildMounts()
+  }
+
+  private restyle(sprite: GameObjects.Sprite) {
+    const key = texKey(sprite.texture.key)
+    if (key === sprite.texture.key) return
+    sprite.setTexture(key)
+    if (this.anims.exists(key)) sprite.play(key)
+    else sprite.stop()
   }
 
   private updateMounts() {
