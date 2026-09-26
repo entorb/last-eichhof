@@ -53,6 +53,49 @@ body {
   text-align: center;
 }
 
+/* Player ship (a beer bottle) from the DOS art, used as a CSS sprite strip:
+   10 frames of 30x90 px shown at 3.2x, then tilted like a phone turning to
+   landscape. url() is relative so it survives the /last-eichhof/ base. */
+.rotate-bottle {
+  width: 96px;
+  height: 288px;
+  background: url("assets/enemies/ship.png") 0 0 / 960px 288px no-repeat;
+  image-rendering: pixelated;
+  animation:
+    bottle-frames 0.5s steps(10) infinite,
+    bottle-turn 2.6s ease-in-out infinite;
+}
+
+@keyframes bottle-frames {
+  to {
+    background-position: -960px 0;
+  }
+}
+
+@keyframes bottle-turn {
+  0%,
+  15% {
+    transform: rotate(0deg);
+  }
+
+  55%,
+  80% {
+    transform: rotate(90deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rotate-bottle {
+    animation: none;
+    background-position: 0 0;
+    transform: rotate(90deg);
+  }
+}
+
 .rotate-title {
   font-size: 28px;
   letter-spacing: 2px;
