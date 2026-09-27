@@ -1,4 +1,5 @@
 import { type GameObjects, Geom, Input, Scene, type Types } from "phaser"
+import { applySkin, texKey } from "../art/skin"
 import { getMusic, getSamples, getSfx } from "../audio"
 import { getLevel, LEVELS } from "../data/levels"
 import { at } from "../data/lookup"
@@ -72,6 +73,7 @@ export class Shop extends Scene {
   }
 
   create() {
+    applySkin(this)
     this.run = getRun()
     this.mode = "shop"
     this.select = 0
@@ -352,7 +354,7 @@ export class Shop extends Scene {
     const items: Item[] = WEAPONS.filter((w) => !w.starter).map((w) => ({
       label: () => `${w.name.padEnd(16, ".")} ${w.cost}`,
       activate: () => this.startBuy(w),
-      icon: `wpn-${w.id}`,
+      icon: texKey(`wpn-${w.id}`),
       weapon: w,
     }))
     items.push({
@@ -380,7 +382,7 @@ export class Shop extends Scene {
       return {
         label: () => `${w.name.padEnd(16, ".")} +${sellValue(w.cost)}`,
         activate: () => this.sell(i),
-        icon: `wpn-${w.id}`,
+        icon: texKey(`wpn-${w.id}`),
         weapon: w,
       }
     })
@@ -407,11 +409,16 @@ export class Shop extends Scene {
 
     for (const p of this.run.loadout) {
       const placed = weaponById(p.defId)
-      const icon = this.add.image(PLACE.x + p.dx, PLACE.y + p.dy, `wpn-${placed.id}`).setDepth(6)
+      const icon = this.add
+        .image(PLACE.x + p.dx, PLACE.y + p.dy, texKey(`wpn-${placed.id}`))
+        .setDepth(6)
       this.dynamic.push(icon)
     }
 
-    this.ghost = this.add.image(this.ghostX, this.ghostY, `wpn-${w.id}`).setAlpha(0.6).setDepth(7)
+    this.ghost = this.add
+      .image(this.ghostX, this.ghostY, texKey(`wpn-${w.id}`))
+      .setAlpha(0.6)
+      .setDepth(7)
     this.dynamic.push(this.ghost)
 
     this.ghostBox = this.add

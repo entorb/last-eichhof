@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skins — The Last Eichhof</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0d14;
+        --card: #151824;
+        --line: #2a3145;
+        --dim: #8b90a6;
+        --text: #e8eaf2;
+        --gold: #ffd54a;
+        --dos: #7fb0ff;
+        --modern: #7ee787;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 20px 24px 60px;
+        background: var(--bg);
+        color: var(--text);
+        font: 14px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      h1 {
+        margin: 0 0 4px;
+        color: var(--gold);
+        font-size: 24px;
+        letter-spacing: 2px;
+      }
+
+      p.lead {
+        margin: 0 0 18px;
+        color: var(--dim);
+        max-width: 70ch;
+      }
+
+      .bar {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 18px;
+        align-items: center;
+        margin: 0 -24px 16px;
+        padding: 10px 24px;
+        background: rgba(11, 13, 20, 0.94);
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(6px);
+      }
+
+      label {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+        color: var(--dim);
+        cursor: pointer;
+        user-select: none;
+      }
+
+      input[type="search"] {
+        padding: 4px 8px;
+        color: var(--text);
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font: inherit;
+      }
+
+      .grow {
+        flex: 1;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 6px 8px;
+        text-align: left;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--line);
+      }
+
+      th {
+        position: sticky;
+        top: 45px;
+        z-index: 1;
+        background: var(--bg);
+        color: var(--dim);
+        font-weight: 400;
+        font-size: 12px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      tbody tr:hover {
+        background: #12151f;
+      }
+
+      td.key {
+        color: var(--gold);
+        white-space: nowrap;
+      }
+
+      td.meta {
+        color: var(--dim);
+        white-space: nowrap;
+      }
+
+      td.art {
+        color: var(--dim);
+        white-space: nowrap;
+      }
+
+      .shot {
+        display: block;
+        /* The explicit width/height attributes come from fitScale() so both
+           columns render at the same size; these are just a safety net. */
+        max-width: 320px;
+        max-height: 200px;
+        background: #0a0c12;
+        background-image:
+          linear-gradient(45deg, #14161f 25%, transparent 25%),
+          linear-gradient(-45deg, #14161f 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #14161f 75%),
+          linear-gradient(-45deg, transparent 75%, #14161f 75%);
+        background-size: 12px 12px;
+        background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+        image-rendering: pixelated;
+      }
+
+      .zoom {
+        vertical-align: middle;
+        cursor: zoom-in;
+        border: 1px solid transparent;
+        border-radius: 4px;
+      }
+
+      .zoom:hover {
+        border-color: var(--gold);
+      }
+
+      dialog {
+        max-width: 94vw;
+        padding: 0;
+        color: var(--text);
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+
+      dialog::backdrop {
+        background: rgba(0, 0, 0, 0.75);
+      }
+
+      dialog .bar {
+        margin: 0;
+        position: static;
+      }
+
+      dialog canvas,
+      dialog img {
+        display: block;
+        max-width: 92vw;
+        max-height: 78vh;
+        margin: 0 auto;
+      }
+
+      .missing {
+        color: #ff8a95;
+      }
+    </style>
+</head>
+<body>
+    <h1>GRAPHICS SKINS</h1>
+    <p class="lead">
+        Every world texture, original DOS art next to the modern vector skin. Modern art is painted by
+        <code>drawModernSheet()</code> from <code>src/game/art/</code> — the same function the game calls at
+        boot, so this page cannot drift from what ships. Click a sheet to inspect it full size; use
+        <kbd>1</kbd>/<kbd>2</kbd> in the viewer to switch skin.
+    </p>
+
+    <div class="bar">
+        <input id="q" type="search" placeholder="filter (key, art, size)" />
+        <label><input id="only-anim" type="checkbox" /> animated only</label>
+        <label><input id="only-big" type="checkbox" /> area &gt; 5000 px</label>
+        <label>zoom <input id="zoom" type="range" min="0.5" max="4" step="0.25" value="1" /></label>
+        <span class="meta">1 = fit cell</span>
+        <span class="grow"></span>
+        <span id="count" class="meta"></span>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>key</th>
+                <th>size</th>
+                <th>frames</th>
+                <th>art</th>
+                <th style="color: var(--dos)">original (DOS)</th>
+                <th style="color: var(--modern)">modern (vector)</th>
+            </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+    </table>
+
+    <dialog id="viewer">
+        <div class="bar">
+            <strong id="vkey"></strong>
+            <span id="vmeta" class="meta"></span>
+            <span class="grow"></span>
+            <button id="v-dos" type="button">original</button>
+            <button id="v-modern" type="button">modern</button>
+            <button id="v-close" type="button">close</button>
+        </div>
+        <div id="v-body"></div>
+    </dialog>
+
+    <script type="module" src="/skins.ts"></script>
+</body>
+</html>
