@@ -18,6 +18,7 @@ export const UI_ICONS = {
   install: "ui-install",
   share: "ui-share",
   contact: "ui-contact",
+  home: "ui-home",
   back: "ui-back",
   music: "ui-music",
   exit: "ui-exit",
@@ -266,6 +267,25 @@ const drawers: Record<string, Draw> = {
     ctx.stroke()
   },
 
+  "ui-home": (ctx) => {
+    glow(ctx, 0x7ee787)
+    ctx.fillStyle = linear(ctx, 0, 2, 0, SIZE, 0x9af0a3, 0x2ea043)
+    // roof + walls in one path, door punched back out in the panel color
+    ctx.beginPath()
+    ctx.moveTo(12, 2)
+    ctx.lineTo(23, 12)
+    ctx.lineTo(19.5, 12)
+    ctx.lineTo(19.5, 22)
+    ctx.lineTo(4.5, 22)
+    ctx.lineTo(4.5, 12)
+    ctx.lineTo(1, 12)
+    ctx.closePath()
+    ctx.fill()
+    ctx.fillStyle = css(0x0b0e1a)
+    roundRect(ctx, 9.5, 15, 5, 7, 1)
+    ctx.fill()
+  },
+
   "ui-back": (ctx) => {
     glow(ctx, 0x9aa4bf)
     ctx.strokeStyle = linear(ctx, 0, 0, SIZE, SIZE, 0xd7deee, 0x6b7a99)
@@ -374,7 +394,7 @@ export function runUiIconsSelfCheck(): void {
   const assert = (cond: boolean, msg: string) => {
     if (!cond) throw new Error(`selfcheck: ${msg}`)
   }
-  assert(UI_ICON_KEYS.length === 17, "expected 17 UI icons")
+  assert(UI_ICON_KEYS.length === 18, "expected 18 UI icons")
   assert(new Set(UI_ICON_KEYS).size === UI_ICON_KEYS.length, "icons unique")
   for (const key of UI_ICON_KEYS) {
     assert(key.startsWith("ui-"), `${key} needs ui- prefix`)
