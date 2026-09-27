@@ -8,6 +8,8 @@ import {
   clampScroll,
   DIFFICULTY,
   DIFFICULTY_ORDER,
+  GRAPHICS,
+  GRAPHICS_ORDER,
   loadResults,
   loadSettings,
   type ResultSort,
@@ -59,6 +61,7 @@ const ICON_GAP = 14
 const HISTORY_ROWS = 15
 const GAME_TITLE = "The Last Eichhof"
 const CONTACT_URL = "https://entorb.net/contact.php?origin=last-eichhof"
+const HOME_URL = "https://entorb.net/games/"
 const SHARE_LABEL = "SHARE"
 const SHARE_COPIED = "LINK COPIED"
 const SHARE_REVERT_MS = 1500
@@ -319,6 +322,7 @@ export class Menu extends Scene {
           cycle: (dir) => this.cycleDifficulty(dir),
           icon: UI_ICONS.difficulty,
         },
+        this.graphicsEntry(),
         {
           label: () => "SCORES",
           activate: () => this.goto("scores"),
@@ -331,11 +335,11 @@ export class Menu extends Scene {
         },
       ]
       if (fullscreenEntry) defs.splice(2, 0, fullscreenEntry)
-      this.addItems(defs, 246, 58)
-      this.addDivider(PLAY.cx, 528, 460)
-      this.addActionRow(PLAY.cx, 562)
-      this.statsText = this.addStatic(PLAY.cx, 606, this.globalGamesLabel(), 20, DIM).setOrigin(0.5)
-      this.addLinkRow(PLAY.cx, 644)
+      this.addItems(defs, 228, 56)
+      this.addDivider(PLAY.cx, 556, 460)
+      this.addActionRow(PLAY.cx, 588)
+      this.statsText = this.addStatic(PLAY.cx, 626, this.globalGamesLabel(), 20, DIM).setOrigin(0.5)
+      this.addLinkRow(PLAY.cx, 662)
       this.loadGlobalGames()
     } else if (this.mode === "options") {
       this.addStatic(PLAY.cx, 205, "OPTIONS", 34, WHITE).setOrigin(0.5)
@@ -353,6 +357,7 @@ export class Menu extends Scene {
           cycle: () => this.toggleMusic(),
           icon: UI_ICONS.music,
         },
+        this.graphicsEntry(),
         {
           label: () => "BACK",
           activate: () => this.goto("menu"),
@@ -399,6 +404,7 @@ export class Menu extends Scene {
           cycle: () => this.toggleMusic(),
           icon: UI_ICONS.music,
         },
+        this.graphicsEntry(),
         {
           label: () => "END GAME",
           activate: () => this.endGame(),
@@ -611,6 +617,25 @@ export class Menu extends Scene {
     this.refresh()
   }
 
+  // The skin is re-pointed where it is drawn (`Game` on resume, `Game`/`Shop` in
+  // `create`), so the menu only has to persist the choice and redraw its label.
+  private cycleGraphics(dir: number) {
+    const settings = loadSettings()
+    const idx = GRAPHICS_ORDER.indexOf(settings.graphics)
+    const next = at(GRAPHICS_ORDER, (idx + dir + GRAPHICS_ORDER.length) % GRAPHICS_ORDER.length)
+    saveSettings({ ...settings, graphics: next })
+    this.refresh()
+  }
+
+  private graphicsEntry(): Item {
+    return {
+      label: () => `GRAPHICS: ${GRAPHICS[loadSettings().graphics]}`,
+      activate: () => this.cycleGraphics(1),
+      cycle: (dir) => this.cycleGraphics(dir),
+      icon: UI_ICONS.graphics,
+    }
+  }
+
   private toggleAutoFire() {
     const settings = loadSettings()
     saveSettings({ ...settings, autoFire: !settings.autoFire })
@@ -771,50 +796,57 @@ export class Menu extends Scene {
     })
   }
 
-  private openContact() {
-    window.open(CONTACT_URL, "_blank", "noopener")
+  private open(url: string) {
+    window.open(url, "_blank", "noopener")
   }
 
   // Horizontal row below the menu: reachable with up/down and left/right.
   private addActionRow(x: number, y: number) {
     const size = 22
     const installed = this.isInstalled()
+    const share: Item = {
+      label: () => SHARE_LABEL,
+      activate: () => this.shareGame(),
+      icon: UI_ICONS.share,
+    }
     const defs: Item[] = [
+      {
+        label: () => "HOME",
+        activate: () => this.open(HOME_URL),
+        icon: UI_ICONS.home,
+      },
       ...(installed
         ? []
         : [
             {
-              label: () => "INSTALL APP",
+              label: () => "INSTALL",
               activate: () => this.activateInstall(),
               icon: UI_ICONS.install,
             },
           ]),
-      {
-        label: () => SHARE_LABEL,
-        activate: () => this.shareGame(),
-        icon: UI_ICONS.share,
-      },
+      share,
       {
         label: () => "CONTACT",
-        activate: () => this.openContact(),
+        activate: () => this.open(CONTACT_URL),
         icon: UI_ICONS.contact,
       },
     ]
-    const shareIndex = installed ? 1 : 0
     const entries = defs.map((def) => this.addEntry(0, y, def, size, 0))
-    this.shareText = at(entries, shareIndex).text
+    // found by reference, so reordering the row above cannot point the
+    // LINK COPIED flash at the wrong entry
+    this.shareText = at(entries, defs.indexOf(share)).text
     this.layoutEntries(x, y, entries, 28, 34)
     this.rows.push(entries)
   }
 
   private addLinkRow(x: number, y: number) {
-    this.addLinkGroup(x, y, "Original DOS game:", [
+    this.addLinkGroup(x, y, "This remake:", [
+      ["SourceCode", "https://github.com/entorb/last-eichhof"],
+    ])
+    this.addLinkGroup(x, y + 28, "Original DOS game:", [
       ["Wikipedia", "https://en.wikipedia.org/wiki/The_Last_Eichhof"],
       ["Download", "https://archive.org/download/TheLastEichhof/beer11.zip"],
       ["SourceCode", "http://ftp.lanet.lv/ftp/mirror/x2ftp/msdos/programming/gamesrc/beersrc.zip"],
-    ])
-    this.addLinkGroup(x, y + 28, "This game's", [
-      ["SourceCode", "https://github.com/entorb/last-eichhof"],
     ])
   }
 
