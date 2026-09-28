@@ -71,11 +71,20 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,png,ogg,webmanifest}"],
-        globIgnores: ["**/contact.html", "**/audition.html"],
-        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+        globPatterns: ["**/*.{js,css,html,png,webmanifest}"],
+        globIgnores: ["**/contact.html", "**/audition.html", "assets/sounds/**"],
         navigateFallback: "index.html",
         cleanupOutdatedCaches: true,
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/sounds\/[^/]+\.ogg$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "sounds",
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+        ],
       },
       // Dev keeps the plain server; test offline from the production build.
       devOptions: { enabled: false },
