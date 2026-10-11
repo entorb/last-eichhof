@@ -1,5 +1,5 @@
 // Server-side play counter, shared with the other entorb.net pages.
-const STATS_URL = "https://entorb.net/web-stats-json.php?origin=eichhof"
+const STATS_URL = "https://entorb.net/web-stats-json.php?origin=last-eichhof"
 
 export function parseAccessCounts(data: unknown): number | null {
   if (typeof data !== "object" || data === null) return null
