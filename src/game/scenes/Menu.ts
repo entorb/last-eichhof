@@ -846,7 +846,7 @@ export class Menu extends Scene {
     this.addLinkGroup(x, y + 28, "Original DOS game:", [
       ["Wikipedia", "https://en.wikipedia.org/wiki/The_Last_Eichhof"],
       ["Download", "https://archive.org/download/TheLastEichhof/beer11.zip"],
-      ["SourceCode", "http://ftp.lanet.lv/ftp/mirror/x2ftp/msdos/programming/gamesrc/beersrc.zip"],
+      ["SourceCode", "http://ftp.lanet.lv/ftp/mirror/x2ftp/msdos/programming/gamesrc/beersrc.zip"], // NOSONAR S5332: mirror is http-only (https times out)
     ])
   }
 
