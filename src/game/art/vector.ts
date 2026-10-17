@@ -27,6 +27,7 @@ export function mix(a: number, b: number, t: number): number {
 }
 
 export function linear(
+  // NOSONAR S107: positional args mirror the Canvas 2D API
   ctx: Ctx,
   x0: number,
   y0: number,
@@ -44,6 +45,7 @@ export function linear(
 }
 
 export function radial(
+  // NOSONAR S107: positional args mirror the Canvas 2D API
   ctx: Ctx,
   x: number,
   y: number,
@@ -121,6 +123,7 @@ export function spec(ctx: Ctx, x: number, y: number, w: number, h: number, a = 0
 }
 
 export function wordmark(
+  // NOSONAR S107: positional args mirror the Canvas 2D API
   ctx: Ctx,
   text: string,
   x: number,
@@ -156,6 +159,7 @@ export function readableOn(color: number): number {
 }
 
 export function arc(
+  // NOSONAR S107: positional args mirror the Canvas 2D API
   ctx: Ctx,
   x: number,
   y: number,
