@@ -74,12 +74,12 @@ describe("modern graphics skin", () => {
 
   it("maps exactly the 84 DOS foe sheets and 26 rig sheets", () => {
     const sheetKeys = new Set(SPRITE_SHEETS.map((s) => s.key))
-    expect(FOE_ART_KEYS.length).toBe(84)
+    expect(FOE_ART_KEYS).toHaveLength(84)
     for (const key of FOE_ART_KEYS) {
       expect(sheetKeys.has(key), key).toBe(true)
       expect(FOE_ART[key]?.art, key).toBeTruthy()
     }
-    expect(RIG_ART_KEYS.length).toBe(26)
+    expect(RIG_ART_KEYS).toHaveLength(26)
     for (const key of RIG_ART_KEYS) {
       expect(new Set(RIG_ART_KEYS).has(key), key).toBe(true)
     }
