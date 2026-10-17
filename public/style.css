@@ -80,7 +80,7 @@ body {
 
   55%,
   80% {
-    transform: rotate(90deg);
+    transform: rotate(-90deg);
   }
 
   100% {
@@ -92,7 +92,7 @@ body {
   .rotate-bottle {
     animation: none;
     background-position: 0 0;
-    transform: rotate(90deg);
+    transform: rotate(-90deg);
   }
 }
 
