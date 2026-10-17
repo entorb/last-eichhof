@@ -91,7 +91,11 @@ await browser.close();
   - No nested ternaries (`S3358`); clamps use `Math.min`/`Math.max` (`S7766`); membership tests use `Set#has` not `Array#includes` (`S7776`).
   - Don't call `Array#push()` multiple times in one function (`S7778`) — build one array literal (conditional spread for optional entries).
   - High cognitive complexity (`S3776`, threshold 15): split into small extracted private helpers, one loop/switch each, not `// biome-ignore` — see `src/game/data/path.ts` `PathRunner.step*` or `Game.collide*` for the pattern.
-  - `.sonarcloud.properties` holds `sonar.exclusions` for generated files; add `sonar.issue.ignore.multicriteria` there (with a comment explaining why) for an intentional deviation — never inline `NOSONAR`.
+  - Vitest: `expect(x).toHaveLength(n)` over `expect(x.length).toBe(n)` (`S5906`); same for `toBe(true)` on `.has`-style checks → matcher-specific forms.
+  - Every HTML `<input>` needs a `<label>` or `aria-label` (`Web:InputWithoutLabelCheck`), also in dev pages like `skins.html`.
+  - Max 7 function parameters (`S107`); prefer an options object. Exempt: positional Canvas helpers in `art/vector.ts` (`// NOSONAR S107: ...` on the signature line).
+  - External `http://` URLs (`S5332`) use `https://`; the beersrc.zip mirror is http-only, so that line carries `// NOSONAR S5332: ...`.
+  - `.sonarcloud.properties` holds `sonar.exclusions` for generated files. For an intentional deviation use inline `// NOSONAR <rule>: <reason>` on the flagged line, so the reason stays next to the cause.
 
 ## Architecture
 
