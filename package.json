@@ -5,7 +5,7 @@
     "type": "git",
     "url": "git+https://github.com/phaserjs/template-vite-ts.git"
   },
-  "packageManager": "pnpm@12.5.1",
+  "packageManager": "pnpm@12.14.0",
   "scripts": {
     "dev": "vite --config vite/config.dev.mjs",
     "build": "vite build --config vite/config.prod.mjs",
