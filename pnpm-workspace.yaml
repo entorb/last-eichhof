@@ -5,3 +5,7 @@ allowBuilds:
   ffmpeg-static: true
 overrides:
   i18next-http-backend@<4.0.2: ^4.0.2
+auditConfig:
+  # TODO: remove after 07.11.26
+  ignoreGhsas:
+    - GHSA-gcqx-w48m-w2h4  # deepmerge via workbox-build (build-time only), no patch exists
