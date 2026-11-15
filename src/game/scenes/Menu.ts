@@ -66,8 +66,8 @@ const SHARE_LABEL = "SHARE"
 const SHARE_COPIED = "LINK COPIED"
 const SHARE_REVERT_MS = 1500
 
-function fmtDate(at: number): string {
-  const d = new Date(at)
+function fmtDate(ms: number): string {
+  const d = new Date(ms)
   const p = (n: number) => String(n).padStart(2, "0")
   return `${p(d.getMonth() + 1)}-${p(d.getDate())}`
 }
@@ -763,8 +763,8 @@ export class Menu extends Scene {
 
   private isInstalled(): boolean {
     const standalone =
-      (window.navigator as Navigator & { standalone?: boolean }).standalone === true
-    return window.matchMedia("(display-mode: standalone)").matches || standalone
+      (globalThis.navigator as Navigator & { standalone?: boolean }).standalone === true
+    return globalThis.matchMedia("(display-mode: standalone)").matches || standalone
   }
 
   private activateInstall() {
@@ -776,15 +776,15 @@ export class Menu extends Scene {
   }
 
   private shareGame() {
-    const url = window.location.href
+    const url = globalThis.location.href
     if (typeof navigator.share === "function") {
-      void navigator.share({ title: GAME_TITLE, url }).catch(() => {})
+      void navigator.share({ title: GAME_TITLE, url }).catch(() => undefined)
       return
     }
     void navigator.clipboard
       ?.writeText(url)
       .then(() => this.flashShare())
-      .catch(() => {})
+      .catch(() => undefined)
   }
 
   private flashShare() {

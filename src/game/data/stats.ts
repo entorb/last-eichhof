@@ -23,7 +23,7 @@ export function reportGameStart(): void {
   if (import.meta.env.DEV || host === "localhost" || host === "127.0.0.1") return
   // `globalThis.fetch` may be missing in some environments (tests); the
   // optional call short-circuits, and `.catch` swallows network rejections.
-  void globalThis.fetch?.(`${STATS_URL}&action=write`).catch(() => {})
+  void globalThis.fetch?.(`${STATS_URL}&action=write`).catch(() => undefined)
 }
 
 export function runStatsSelfCheck(): void {

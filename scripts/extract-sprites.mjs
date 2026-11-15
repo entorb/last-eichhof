@@ -262,7 +262,7 @@ function catalog(libs, pal) {
 // --- main ------------------------------------------------------------------
 
 const archive = parseArchive(readFileSync(DAT))
-const pal = parsePalette()
+const palette = parsePalette()
 const getRaw = (name) => {
   const raw = archive.get(name)
   if (!raw) throw new Error(`missing ${name}`)
@@ -278,12 +278,12 @@ const getLib = (level) => {
 if (CATALOG) {
   catalog(
     ["WEAPONS", 0, 1, 2, 3, 4].map((n) => [n === "WEAPONS" ? "WEAPONS" : `LEVEL${n}`, getLib(n)]),
-    pal,
+    palette,
   )
 }
 
 const map = JSON.parse(readFileSync(MAP, "utf8"))
-const scale = map.scale ?? 3
+const outScale = map.scale ?? 3
 mkdirSync(OUT_DIR, { recursive: true })
 
 const sheets = []
@@ -293,14 +293,14 @@ function emitSprite(key, level, index) {
   if (written.has(key)) return
   const sprite = getLib(level)[index]
   if (!sprite) throw new Error(`${key}: ${level} has no sprite ${index}`)
-  const { width, height, rgba } = renderSprite(sprite, pal, scale)
+  const { width, height, rgba } = renderSprite(sprite, palette, outScale)
   writeFileSync(resolve(OUT_DIR, `${key}.png`), encodePng(width, height, rgba))
   const double = (sprite.flags & 0x08) !== 0
   sheets.push({
     key,
     file: `assets/enemies/${key}.png`,
-    frameWidth: sprite.xs * scale,
-    frameHeight: sprite.ys * scale,
+    frameWidth: sprite.xs * outScale,
+    frameHeight: sprite.ys * outScale,
     frames: sprite.maxn,
     frameRate: double ? 10 : 20,
   })
@@ -348,9 +348,9 @@ function moveStep(run) {
   }
   return {
     t: "go",
-    dx: run.dx * run.count * scale,
-    dy: run.dy * run.count * scale,
-    speed: Math.round(Math.hypot(run.dx, run.dy) * scale * 20 * 100) / 100,
+    dx: run.dx * run.count * outScale,
+    dy: run.dy * run.count * outScale,
+    speed: Math.round(Math.hypot(run.dx, run.dy) * outScale * 20 * 100) / 100,
   }
 }
 
@@ -372,8 +372,8 @@ function controlStep(c, level, foes, valid) {
       return {
         t: "release",
         kind: `l${level}-f${c.foe}`,
-        x: c.dx * scale,
-        y: c.dy * scale,
+        x: c.dx * outScale,
+        y: c.dy * outScale,
       }
     }
   }
@@ -491,7 +491,7 @@ for (let level = 0; level < LEVELS; level++) {
     }
     const kind = `l${level}-f${e.foe}`
     if (!kinds.has(kind)) continue
-    spawns.push({ at, x: e.x * scale, y: e.y * scale, kind })
+    spawns.push({ at, x: e.x * outScale, y: e.y * outScale, kind })
     if (kinds.get(kind).role === "boss") {
       bosses++
       firstBossAt = Math.min(firstBossAt, at)

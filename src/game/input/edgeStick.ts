@@ -19,10 +19,10 @@ export class EdgeStick {
     this.scene = scene
     this.canvas = scene.game.canvas
     this.onDown = onDown
-    window.addEventListener("pointerdown", this.down)
-    window.addEventListener("pointermove", this.move)
-    window.addEventListener("pointerup", this.up)
-    window.addEventListener("pointercancel", this.up)
+    globalThis.addEventListener("pointerdown", this.down)
+    globalThis.addEventListener("pointermove", this.move)
+    globalThis.addEventListener("pointerup", this.up)
+    globalThis.addEventListener("pointercancel", this.up)
     scene.events.once("shutdown", () => this.destroy())
   }
 
@@ -35,10 +35,10 @@ export class EdgeStick {
   }
 
   destroy(): void {
-    window.removeEventListener("pointerdown", this.down)
-    window.removeEventListener("pointermove", this.move)
-    window.removeEventListener("pointerup", this.up)
-    window.removeEventListener("pointercancel", this.up)
+    globalThis.removeEventListener("pointerdown", this.down)
+    globalThis.removeEventListener("pointermove", this.move)
+    globalThis.removeEventListener("pointerup", this.up)
+    globalThis.removeEventListener("pointercancel", this.up)
     this.pointerId = null
   }
 

@@ -433,7 +433,7 @@ export function runWeaponsSelfCheck(): void {
     const shots = w.emitters.flatMap((e) => (e.release ? [e, ...e.release.shots] : [e]))
     for (const s of shots) {
       assert(
-        SPRITE_SHEETS.some((sheet) => sheet.key === s.sprite),
+        SPRITE_SHEETS.some((sh) => sh.key === s.sprite),
         `shot sprite ${w.id}: ${s.sprite}`,
       )
     }

@@ -215,6 +215,9 @@ export class PathRunner {
         return
       case "home":
         this.state = { kind: "home", remaining: step.ms, speed: step.speed }
+        return
+      default:
+        break
     }
   }
 }

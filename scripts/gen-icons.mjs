@@ -87,7 +87,7 @@ for (let y = 0; y < fh; y++) {
 let visible = 0
 for (let i = 3; i < rgba.length; i += 4) if (rgba[i] > 0) visible++
 if (visible === 0) throw new Error("ship frame 0 is empty")
-const frame = { fw, fh, rgba }
+const shipFrame = { fw, fh, rgba }
 
 mkdirSync(OUT_DIR, { recursive: true })
 const icons = [
@@ -97,10 +97,10 @@ const icons = [
   ["apple-touch-icon.png", 180, { radius: 0 }],
 ]
 for (const [name, size, opts] of icons) {
-  writeFileSync(resolve(OUT_DIR, name), renderIcon(frame, size, opts))
+  writeFileSync(resolve(OUT_DIR, name), renderIcon(shipFrame, size, opts))
 }
 writeFileSync(
   resolve(ROOT, "public/favicon.png"),
-  renderIcon(frame, 64, { contentScale: 0.9, opaque: false }),
+  renderIcon(shipFrame, 64, { contentScale: 0.9, opaque: false }),
 )
 console.log(`wrote ${icons.length} icons + favicon.png from ship frame 0`)

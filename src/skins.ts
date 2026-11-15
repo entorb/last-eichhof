@@ -199,7 +199,7 @@ function wire(): void {
       paintViewer()
     }
   })
-  window.addEventListener("keydown", (e) => {
+  globalThis.addEventListener("keydown", (e) => {
     if (!(viewer.open && current)) return
     if (e.key === "1") {
       current.kind = "dos"

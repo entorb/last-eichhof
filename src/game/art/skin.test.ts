@@ -47,7 +47,6 @@ describe("modern graphics skin", () => {
     }
   })
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: shortcut: existing complex logic, refactor when touched next
   it("covers every texture the game asks for", () => {
     const keys = new Set<string>()
     for (const kind of Object.keys(FOES) as (keyof typeof FOES)[]) {

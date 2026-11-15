@@ -53,7 +53,8 @@ const SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
 
 // Read the PNG chunk stream until IEND; returns the bare header fields and the
 // concatenated IDAT payloads.
-function readChunks(buf, pos) {
+function readChunks(buf, start) {
+  let pos = start
   let width = 0
   let height = 0
   const idat = []

@@ -15,7 +15,7 @@ function fitViewport(game: PhaserGame): void {
   apply()
   game.events.once("ready", apply)
   window.visualViewport.addEventListener("resize", apply)
-  window.addEventListener("orientationchange", apply)
+  globalThis.addEventListener("orientationchange", apply)
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -24,6 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
   fitViewport(game)
   // Dev-only handle for browser debugging (Playwright `page.evaluate`).
   if (import.meta.env.DEV) {
-    ;(window as unknown as { __game: unknown }).__game = game
+    ;(globalThis as unknown as { __game: unknown }).__game = game
   }
 })

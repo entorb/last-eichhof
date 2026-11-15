@@ -16,7 +16,7 @@ interface InstallPrompt {
 let controller: InstallPrompt | null = null
 
 /** Start listening for `beforeinstallprompt`. Call once at startup. */
-export function captureInstallPrompt(target: EventTarget = window): void {
+export function captureInstallPrompt(target: EventTarget = globalThis): void {
   let deferred: InstallPromptEvent | null = null
   target.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault()
