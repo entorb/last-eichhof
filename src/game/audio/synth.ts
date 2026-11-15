@@ -1,5 +1,5 @@
 import { Sound } from "phaser"
-import type { Samples } from "./samples"
+import type { Samples } from "./samples.ts"
 
 type Wave = OscillatorType
 
@@ -36,7 +36,7 @@ export class Synth {
   note(freq: number, dur: number, type: Wave = "square", gain = 0.08, when?: number): void {
     const ctx = this.ctx
     const out = this.out
-    if (!ctx || !out) return
+    if (!(ctx && out)) return
     const t = when ?? ctx.currentTime
     const osc = ctx.createOscillator()
     const g = ctx.createGain()
@@ -53,7 +53,7 @@ export class Synth {
   noise(dur: number, gain = 0.2, filterHz = 1800, when?: number): void {
     const ctx = this.ctx
     const out = this.out
-    if (!ctx || !out || !this.noiseBuffer) return
+    if (!(ctx && out && this.noiseBuffer)) return
     const t = when ?? ctx.currentTime
     const src = ctx.createBufferSource()
     src.buffer = this.noiseBuffer
@@ -72,7 +72,7 @@ export class Synth {
   private sweep(from: number, to: number, dur: number, type: Wave, gain: number): void {
     const ctx = this.ctx
     const out = this.out
-    if (!ctx || !out) return
+    if (!(ctx && out)) return
     const t = ctx.currentTime
     const osc = ctx.createOscillator()
     const g = ctx.createGain()
@@ -102,10 +102,10 @@ export class Synth {
     const data = buf.getChannelData(0)
     // getRandomValues takes at most 65536 bytes per call: fill in chunks.
     const bits = new Uint16Array(len)
-    for (let i = 0; i < len; i += 32768) {
-      crypto.getRandomValues(bits.subarray(i, i + 32768))
+    for (let i = 0; i < len; i += 32_768) {
+      crypto.getRandomValues(bits.subarray(i, i + 32_768))
     }
-    for (const [i, v] of bits.entries()) data[i] = v / 32768 - 1
+    for (const [i, v] of bits.entries()) data[i] = v / 32_768 - 1
     return buf
   }
 

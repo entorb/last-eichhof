@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { runUiIconsSelfCheck, UI_ICON_KEYS, UI_ICONS } from "./uiIcons"
+import { runUiIconsSelfCheck, UI_ICON_KEYS, UI_ICONS } from "./uiIcons.ts"
 
 describe("uiIcons", () => {
   it("exposes a unique, prefixed key per icon", () => {

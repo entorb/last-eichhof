@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { FOES, type FoeKind } from "./foeRosters"
-import { PathRunner, pathFor, runPathSelfCheck } from "./path"
+import { FOES, type FoeKind } from "./foeRosters.ts"
+import { PathRunner, pathFor, runPathSelfCheck } from "./path.ts"
 
 const KINDS = Object.keys(FOES) as FoeKind[]
 

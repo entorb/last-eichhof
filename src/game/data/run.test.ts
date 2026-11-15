@@ -6,7 +6,7 @@ import {
   runRunSelfCheck,
   SPEEDUP_STEP,
   shipSpeed,
-} from "./run"
+} from "./run.ts"
 
 describe("run", () => {
   it("passes the in-game self check", () => {
@@ -16,7 +16,7 @@ describe("run", () => {
   it("resets every per-game value on a new game", () => {
     const dirty = newRun()
     dirty.money = 999
-    dirty.score = 12345
+    dirty.score = 12_345
     dirty.level = 4
     dirty.lives = 1
     dirty.speedUps = 2

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { LEVELS } from "./data/levels"
-import { endRun, getRun, hasRun, newRun } from "./data/run"
-import * as Flow from "./flow"
+import { LEVELS } from "./data/levels.ts"
+import { endRun, getRun, hasRun, newRun } from "./data/run.ts"
+import * as Flow from "./flow.ts"
 
 type Call = [name: string, ...args: unknown[]]
 
@@ -30,7 +30,7 @@ describe("scene flow", () => {
     // A previous game's values must not leak into the next one.
     const old = newRun()
     old.money = 999
-    old.score = 12345
+    old.score = 12_345
     old.level = 4
     old.speedUps = 2
     old.loadout.push({ defId: "kanone", dx: 0, dy: 0 })

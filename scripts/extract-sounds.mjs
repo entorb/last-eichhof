@@ -7,6 +7,7 @@
 import { execFileSync } from "node:child_process"
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
+import process from "node:process"
 import { fileURLToPath } from "node:url"
 import ffmpegPath from "ffmpeg-static"
 
@@ -94,6 +95,7 @@ const ADJUST_4 = [
   240, 0, 0, 0, 0, 0, 0, 0,
 ]
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: shortcut: existing complex logic, refactor when touched next
 function decodeAdpcm4(data) {
   if (data.length === 0) return Buffer.alloc(0)
   const out = Buffer.alloc(1 + (data.length - 1) * 2)
@@ -118,7 +120,7 @@ function decodeAdpcm4(data) {
 }
 
 function decodePcm(snd) {
-  if (snd.flags & 0x0001) return decodeAdpcm4(snd.data)
+  if (snd.flags & 0x00_01) return decodeAdpcm4(snd.data)
   return Buffer.from(snd.data)
 }
 
@@ -140,17 +142,18 @@ function addUsage(usage, idx, kind) {
   usage.get(idx).push(kind)
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: shortcut: existing complex logic, refactor when touched next
 function readFoeUsage(usage, foe) {
   for (const at of libPointers(foe)) {
     const sprite = foe.readInt16LE(at + 8)
     let p = at + 12
     while (p + 2 <= foe.length) {
       const w = foe.readUInt16LE(p)
-      if (w === 0x8000) break
-      if (w === 0x8001) p += 4
-      else if (w === 0x8002) p += 8
-      else if (w === 0x8004 || w === 0x8005) p += 2
-      else if (w === 0x8006) {
+      if (w === 0x80_00) break
+      if (w === 0x80_01) p += 4
+      else if (w === 0x80_02) p += 8
+      else if (w === 0x80_04 || w === 0x80_05) p += 2
+      else if (w === 0x80_06) {
         addUsage(usage, foe.readInt16LE(p + 2), `foe:spr${sprite}`)
         p += 4
       } else p += 4
@@ -158,20 +161,21 @@ function readFoeUsage(usage, foe) {
   }
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: shortcut: existing complex logic, refactor when touched next
 function readExpUsage(usage, exp) {
   for (const [i, at] of libPointers(exp).entries()) {
     let p = at + 2
     while (p + 2 <= exp.length) {
       const w = exp.readUInt16LE(p)
-      if (w === 0x8000) break
-      if (w === 0x8001) p += 6
-      else if (w === 0x8002) p += 2
-      else if (w === 0x8003) {
+      if (w === 0x80_00) break
+      if (w === 0x80_01) p += 6
+      else if (w === 0x80_02) p += 2
+      else if (w === 0x80_03) {
         addUsage(usage, exp.readInt16LE(p + 2), `expl#${i}`)
         p += 4
-      } else if (w === 0x8004) p += 2
-      else if (w === 0x8005) p += 2
-      else if (w === 0x8006) p += 6
+      } else if (w === 0x80_04) p += 2
+      else if (w === 0x80_05) p += 2
+      else if (w === 0x80_06) p += 6
       else p += 2
     }
   }
@@ -188,7 +192,7 @@ function levelUsage(files, level) {
       const time = tbl.readUInt16LE(o)
       const x = tbl.readInt16LE(o + 2)
       const foe = tbl.readUInt16LE(o + 6)
-      if (foe === 0x8002) addUsage(usage, x, `attack@${time}`)
+      if (foe === 0x80_02) addUsage(usage, x, `attack@${time}`)
     }
   }
 

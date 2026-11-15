@@ -1,5 +1,5 @@
-import { FOES, type FoeKind } from "./foeRosters"
-import { at } from "./lookup"
+import { FOES, type FoeKind } from "./foeRosters.ts"
+import { at } from "./lookup.ts"
 
 export type Vec = { x: number; y: number }
 

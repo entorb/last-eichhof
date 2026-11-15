@@ -1,24 +1,24 @@
 import { type GameObjects, Geom, Input, Scene, Scenes, TintModes, type Types } from "phaser"
 import VirtualJoyStick from "phaser4-rex-plugins/plugins/virtualjoystick.js"
-import { applySkin, dosKey, graphicsMode, texKey } from "../art/skin"
-import { getMusic, getSamples, getSfx } from "../audio"
-import { FOES, type FoeKind, type RosterSpawn } from "../data/foeRosters"
-import { getLevel, LEVELS } from "../data/levels"
-import { clamp } from "../data/math"
-import { type PathEvent, PathRunner, pathFor } from "../data/path"
-import { PLAY } from "../data/playfield"
-import { endRun, getRun, hasRun, newRun, type Run, shipSpeed } from "../data/run"
-import { DIFFICULTY, loadSettings, recordGameResult } from "../data/store"
+import { applySkin, dosKey, graphicsMode, texKey } from "../art/skin.ts"
+import { getMusic, getSamples, getSfx } from "../audio/index.ts"
+import { FOES, type FoeKind, type RosterSpawn } from "../data/foeRosters.ts"
+import { getLevel, LEVELS } from "../data/levels.ts"
+import { clamp } from "../data/math.ts"
+import { type PathEvent, PathRunner, pathFor } from "../data/path.ts"
+import { PLAY } from "../data/playfield.ts"
+import { endRun, getRun, hasRun, newRun, type Run, shipSpeed } from "../data/run.ts"
+import { DIFFICULTY, loadSettings, recordGameResult } from "../data/store.ts"
 import {
   type Emitter,
   moneyForLevel,
   type ShotKind,
   type Weapon,
   weaponById,
-} from "../data/weapons"
-import * as Flow from "../flow"
-import { moveVector, resolveTouchControls, stickFromForce } from "../input/controls"
-import { EdgeStick } from "../input/edgeStick"
+} from "../data/weapons.ts"
+import * as Flow from "../flow.ts"
+import { moveVector, resolveTouchControls, stickFromForce } from "../input/controls.ts"
+import { EdgeStick } from "../input/edgeStick.ts"
 
 const SHIELD_MS = 2500
 const LOSE_MS = 1200
@@ -143,7 +143,7 @@ export class Game extends Scene {
     this.diff = DIFFICULTY[settings.difficulty]
     if (!hasRun()) newRun()
     this.run = getRun()
-    this.bg = this.add.rectangle(0, 0, PLAY.w, PLAY.h, 0x05060d).setOrigin(0).setDepth(-20)
+    this.bg = this.add.rectangle(0, 0, PLAY.w, PLAY.h, 0x05_06_0d).setOrigin(0).setDepth(-20)
     this.starsFar = this.add
       .tileSprite(PLAY.w / 2, PLAY.h / 2, PLAY.w, PLAY.h, "stars-far")
       .setDepth(-10)
@@ -253,7 +253,7 @@ export class Game extends Scene {
       if (e.repeat) return
       this.run.godMode = !this.run.godMode
       this.godText.setVisible(this.run.godMode)
-      if (this.run.godMode) this.run.money += 10000
+      if (this.run.godMode) this.run.money += 10_000
     })
     if (this.touch) this.buildTouchControls()
 
@@ -267,12 +267,12 @@ export class Game extends Scene {
     // nothing) so Phaser keeps hit-testing it, unlike an alpha-0 sprite.
     const zone = this.add.zone(PLAY.w / 2, BOTTOM - 130, 2, 2)
     const ring = this.add
-      .circle(PLAY.w / 2, BOTTOM - 130, JOY_RADIUS, 0x0a0a12, 0.28)
-      .setStrokeStyle(4, 0x9fe0ff, 0.55)
+      .circle(PLAY.w / 2, BOTTOM - 130, JOY_RADIUS, 0x0a_0a_12, 0.28)
+      .setStrokeStyle(4, 0x9f_e0_ff, 0.55)
       .setDepth(50)
       .setAlpha(0)
     const thumb = this.add
-      .circle(PLAY.w / 2, BOTTOM - 130, JOY_THUMB, 0x9fe0ff, 0.5)
+      .circle(PLAY.w / 2, BOTTOM - 130, JOY_THUMB, 0x9f_e0_ff, 0.5)
       .setDepth(51)
       .setAlpha(0)
     this.joyRing = ring
@@ -499,7 +499,7 @@ export class Game extends Scene {
   }
 
   private fire(dt: number) {
-    if (!this.autoFire && !this.keyFire.isDown && !this.touch) return
+    if (!(this.autoFire || this.keyFire.isDown || this.touch)) return
     for (const [i, { weapon, dx, dy }] of this.loadout.entries()) {
       const left = (this.cooldowns[i] ?? 0) - dt
       if (left > 0) {
@@ -744,7 +744,7 @@ export class Game extends Scene {
         this.killEnemy(e)
       } else {
         e.hitFlash = 0.08
-        e.sprite.setTint(0xffffff).setTintMode(TintModes.FILL)
+        e.sprite.setTint(0xff_ff_ff).setTintMode(TintModes.FILL)
       }
       if (shot.power <= 0) {
         deadShots.add(shot)
@@ -1046,7 +1046,7 @@ export class Game extends Scene {
 
   private drawHud() {
     this.hud.clear()
-    this.hud.fillStyle(0x0a0a12, 0.9)
+    this.hud.fillStyle(0x0a_0a_12, 0.9)
     this.hud.fillRect(0, 0, PLAY.w, HUD_H)
   }
 }

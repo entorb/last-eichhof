@@ -1,5 +1,5 @@
-import { LEVELS } from "./data/levels"
-import { endRun, newRun } from "./data/run"
+import { LEVELS } from "./data/levels.ts"
+import { endRun, newRun } from "./data/run.ts"
 
 export type SceneName = "Boot" | "Menu" | "Shop" | "Game"
 

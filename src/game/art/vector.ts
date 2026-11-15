@@ -118,7 +118,7 @@ export function glow(ctx: Ctx, x: number, y: number, r: number, color: number, b
 }
 
 export function spec(ctx: Ctx, x: number, y: number, w: number, h: number, a = 0.5) {
-  ctx.fillStyle = linear(ctx, x, y, x + w, y + h, 0xffffff, 0xffffff, a, 0)
+  ctx.fillStyle = linear(ctx, x, y, x + w, y + h, 0xff_ff_ff, 0xff_ff_ff, a, 0)
   ctx.fillRect(x, y, w, h)
 }
 
@@ -155,7 +155,7 @@ export function wordmark(
 export function readableOn(color: number): number {
   const l =
     0.2126 * ((color >> 16) & 0xff) + 0.7152 * ((color >> 8) & 0xff) + 0.0722 * (color & 0xff)
-  return l > 140 ? 0x1b1d24 : 0xf4ecd8
+  return l > 140 ? 0x1b_1d_24 : 0xf4_ec_d8
 }
 
 export function arc(

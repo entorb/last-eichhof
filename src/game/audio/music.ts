@@ -1,5 +1,5 @@
-import type { Samples } from "./samples"
-import type { Synth } from "./synth"
+import type { Samples } from "./samples.ts"
+import type { Synth } from "./synth.ts"
 
 const STEPS = 16
 
@@ -114,7 +114,7 @@ export class Music {
 
   private tick(): void {
     const p = this.pattern
-    if (!p || !this.synth.running) return
+    if (!(p && this.synth.running)) return
     const now = this.synth.now()
     if (this.nextTime < now) this.nextTime = now + 0.05
     const dur = stepDuration(p.bpm)

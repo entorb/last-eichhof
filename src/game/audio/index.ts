@@ -1,7 +1,7 @@
 import type { Sound } from "phaser"
-import { Music } from "./music"
-import { Samples } from "./samples"
-import { Synth } from "./synth"
+import { Music } from "./music.ts"
+import { Samples } from "./samples.ts"
+import { Synth } from "./synth.ts"
 
 let synth: Synth | null = null
 let music: Music | null = null
@@ -28,5 +28,5 @@ export function getSamples(): Samples {
   return samples
 }
 
-export { runAudioSelfCheck } from "./music"
-export { runSoundsSelfCheck } from "./samples"
+export { runAudioSelfCheck } from "./music.ts"
+export { runSoundsSelfCheck } from "./samples.ts"

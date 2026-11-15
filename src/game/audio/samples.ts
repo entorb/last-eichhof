@@ -1,5 +1,5 @@
 import { Sound } from "phaser"
-import { LEVEL_CUES, type LevelCues, SOUNDS } from "../data/sounds"
+import { LEVEL_CUES, type LevelCues, SOUNDS } from "../data/sounds.ts"
 
 export interface SampleConfig {
   volume?: number
@@ -31,12 +31,12 @@ export class Samples {
   }
 
   play(key: string | null | undefined, config: SampleConfig = {}): boolean {
-    if (!this.manager || !key || !this.has(key)) return false
+    if (!(this.manager && key && this.has(key))) return false
     return this.manager.play(key, config)
   }
 
   loop(key: string | null | undefined, volume = 0.5): void {
-    if (!this.manager || !key || !this.has(key)) return
+    if (!(this.manager && key && this.has(key))) return
     if (this.trackKey === key) return
     this.stopTrack()
     const sound = this.manager.add(key, { loop: true, volume })

@@ -1,9 +1,9 @@
 import { AUTO, Game, Scale, type Types } from "phaser"
-import { PLAY } from "./data/playfield"
-import { Boot } from "./scenes/Boot"
-import { Game as MainGame } from "./scenes/Game"
-import { Menu } from "./scenes/Menu"
-import { Shop } from "./scenes/Shop"
+import { PLAY } from "./data/playfield.ts"
+import { Boot } from "./scenes/Boot.ts"
+import { Game as MainGame } from "./scenes/Game.ts"
+import { Menu } from "./scenes/Menu.ts"
+import { Shop } from "./scenes/Shop.ts"
 
 // Find out more information about the Game Config at:
 // https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
@@ -24,8 +24,6 @@ const config: Types.Core.GameConfig = {
   scene: [Boot, Menu, Shop, MainGame],
 }
 
-const StartGame = (parent: string) => {
-  return new Game({ ...config, parent })
-}
+const StartGame = (parent: string) => new Game({ ...config, parent })
 
 export default StartGame

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
-import { runAudioSelfCheck } from "./music"
-import { runSoundsSelfCheck } from "./samples"
+import { runAudioSelfCheck } from "./music.ts"
+import { runSoundsSelfCheck } from "./samples.ts"
 
 // samples.ts imports Phaser at runtime, which needs `window`; only its types
 // and one class reference are used, so a stub is enough for the pure check.

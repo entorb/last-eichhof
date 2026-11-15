@@ -7,6 +7,7 @@
 //   node scripts/extract-sprites.mjs --catalog  also print an ASCII/colour catalog
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
+import process from "node:process"
 import { fileURLToPath } from "node:url"
 import { encodePng } from "./lib/png.mjs"
 
@@ -46,7 +47,7 @@ function parseArchive(buf) {
 // --- sprite library (.SLI) -------------------------------------------------
 
 function unpackPtr(packed) {
-  return (packed >>> 16) * 16 + (packed & 0xffff)
+  return (packed >>> 16) * 16 + (packed & 0xff_ff)
 }
 
 function decodeSli(buf) {
@@ -75,10 +76,10 @@ function decodeSli(buf) {
 // Decode one path command word (see decodePath). Returns the command (if any),
 // how many operand bytes follow, and whether decoding stops after it.
 function readPathControl(buf, pos, w) {
-  if (w === 0x8000) return { stop: true } // END
-  if (w === 0x8004) return { stop: true, cmd: { k: "cycle" } } // CYCLE
-  if (w === 0x8001) return { cmd: { k: "sprite", index: buf.readUInt16LE(pos) }, len: 2 }
-  if (w === 0x8002)
+  if (w === 0x80_00) return { stop: true } // END
+  if (w === 0x80_04) return { stop: true, cmd: { k: "cycle" } } // CYCLE
+  if (w === 0x80_01) return { cmd: { k: "sprite", index: buf.readUInt16LE(pos) }, len: 2 }
+  if (w === 0x80_02)
     return {
       cmd: {
         k: "release",
@@ -88,8 +89,8 @@ function readPathControl(buf, pos, w) {
       },
       len: 6,
     }
-  if (w === 0x8005) return { cmd: { k: "mark" } }
-  if (w === 0x8006) return { cmd: { k: "sound", index: buf.readUInt16LE(pos) }, len: 2 }
+  if (w === 0x80_05) return { cmd: { k: "mark" } }
+  if (w === 0x80_06) return { cmd: { k: "sound", index: buf.readUInt16LE(pos) }, len: 2 }
   return { stop: true } // unknown control word
 }
 
@@ -99,7 +100,7 @@ function decodePath(buf, start) {
   while (pos + 2 <= buf.length) {
     const w = buf.readUInt16LE(pos)
     pos += 2
-    if ((w & 0xfff0) === 0x8000) {
+    if ((w & 0xff_f0) === 0x80_00) {
       const c = readPathControl(buf, pos, w)
       if (c.cmd) cmds.push(c.cmd)
       pos += c.len ?? 0
@@ -151,7 +152,7 @@ function parseTbl(buf) {
 
 function parseDsc(buf) {
   return {
-    text: buf.subarray(2, 42).toString("latin1").split("\0")[0].replace(/\s+/g, " ").trim(),
+    text: buf.subarray(2, 42).toString("latin1").split("\0")[0].replace(/\s+/gu, " ").trim(),
     nbigboss: buf.readInt16LE(42),
     score: buf.readUInt16LE(44),
     money: buf.readUInt16LE(46),
@@ -160,6 +161,7 @@ function parseDsc(buf) {
 
 // --- explosion sprites (.EXP) ----------------------------------------------
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: shortcut: existing complex logic, refactor when touched next
 function parseExplosionSprites(buf) {
   const count = buf.readUInt16LE(0)
   const sprites = new Set()
@@ -168,13 +170,13 @@ function parseExplosionSprites(buf) {
     while (pos + 2 <= buf.length) {
       const w = buf.readUInt16LE(pos)
       pos += 2
-      if (w === 0x8000) break
-      if (w === 0x8001) {
+      if (w === 0x80_00) break
+      if (w === 0x80_01) {
         sprites.add(buf.readUInt16LE(pos))
         pos += 6
-      } else if (w === 0x8003) pos += 2
-      else if (w === 0x8005) pos += 6
-      else if (w === 0x8006) pos += 10
+      } else if (w === 0x80_03) pos += 2
+      else if (w === 0x80_05) pos += 6
+      else if (w === 0x80_06) pos += 10
     }
   }
   return sprites
@@ -184,9 +186,9 @@ function parseExplosionSprites(buf) {
 
 function parsePalette() {
   const src = readFileSync(XMODEC, "utf8")
-  const m = src.match(/standardpal\[PALETTESIZE\]\s*=\s*\{([\s\S]*?)\};/)
+  const m = src.match(/standardpal\[PALETTESIZE\]\s*=\s*\{([\s\S]*?)\};/u)
   if (!m) throw new Error("standardpal not found in XMODEC.C")
-  const bytes = [...m[1].matchAll(/0x([0-9a-fA-F]{2})/g)].map((x) => Number.parseInt(x[1], 16))
+  const bytes = [...m[1].matchAll(/0x([0-9a-fA-F]{2})/gu)].map((x) => Number.parseInt(x[1], 16))
   if (bytes.length !== 768) throw new Error(`palette has ${bytes.length} bytes`)
   const pal = []
   for (let i = 0; i < 256; i++) {
@@ -418,7 +420,7 @@ for (let level = 0; level < LEVELS; level++) {
   const referenced = new Set()
   const queue = []
   for (const e of tbl) {
-    if (e.foe < 0x8000 && !referenced.has(e.foe)) {
+    if (e.foe < 0x80_00 && !referenced.has(e.foe)) {
       referenced.add(e.foe)
       queue.push(e.foe)
     }
@@ -480,7 +482,7 @@ for (let level = 0; level < LEVELS; level++) {
   let firstBossAt = Number.POSITIVE_INFINITY
   for (const e of tbl) {
     const at = e.at / 20
-    if (e.foe >= 0x8000) {
+    if (e.foe >= 0x80_00) {
       const cmd = COMMAND[e.foe]
       if (!cmd) continue
       spawns.push({ at, x: 0, y: 0, kind: firstKind, cmd })

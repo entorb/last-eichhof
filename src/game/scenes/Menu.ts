@@ -1,9 +1,9 @@
 import { GameObjects, Geom, Input, Scale, Scene, type Types } from "phaser"
-import { UI_ICONS } from "../art/uiIcons"
-import { getMusic, getSamples, getSfx } from "../audio"
-import { at } from "../data/lookup"
-import { PLAY } from "../data/playfield"
-import { readGlobalGames, reportGameStart } from "../data/stats"
+import { UI_ICONS } from "../art/uiIcons.ts"
+import { getMusic, getSamples, getSfx } from "../audio/index.ts"
+import { at } from "../data/lookup.ts"
+import { PLAY } from "../data/playfield.ts"
+import { readGlobalGames, reportGameStart } from "../data/stats.ts"
 import {
   clampScroll,
   DIFFICULTY,
@@ -15,13 +15,13 @@ import {
   type ResultSort,
   saveSettings,
   sortResults,
-} from "../data/store"
-import * as Flow from "../flow"
-import { resolveTouchControls } from "../input/controls"
-import { toggleFullscreen } from "../input/fullscreen"
-import { TouchPad } from "../input/touchpad"
-import { hasInstallPrompt, promptInstall } from "../pwa"
-import type { Game } from "./Game"
+} from "../data/store.ts"
+import * as Flow from "../flow.ts"
+import { resolveTouchControls } from "../input/controls.ts"
+import { toggleFullscreen } from "../input/fullscreen.ts"
+import { TouchPad } from "../input/touchpad.ts"
+import { hasInstallPrompt, promptInstall } from "../pwa.ts"
+import type { Game } from "./Game.ts"
 
 type Mode = "menu" | "options" | "scores" | "pause" | "install"
 
@@ -51,8 +51,8 @@ const DIM = "#8b90a6"
 const HOVER = "#c9cee0"
 const WHITE = "#e8eaf2"
 
-const PANEL_FILL = 0x0b0e1a
-const PANEL_BORDER = 0x2a3350
+const PANEL_FILL = 0x0b_0e_1a
+const PANEL_BORDER = 0x2a_33_50
 const PANEL_ALPHA = 0.78
 
 const ICON_SIZE = 26
@@ -129,7 +129,7 @@ export class Menu extends Scene {
 
   create() {
     const overlayAlpha = this.pauseMode ? 0.72 : 1
-    this.add.rectangle(0, 0, PLAY.w, PLAY.h, 0x05060d, overlayAlpha).setOrigin(0).setDepth(-20)
+    this.add.rectangle(0, 0, PLAY.w, PLAY.h, 0x05_06_0d, overlayAlpha).setOrigin(0).setDepth(-20)
     this.starsFar = this.add
       .tileSprite(PLAY.cx, PLAY.cy, PLAY.w, PLAY.h, "stars-far")
       .setDepth(-10)
@@ -442,7 +442,7 @@ export class Menu extends Scene {
   }
 
   private addDivider(x: number, y: number, w: number) {
-    const line = this.add.rectangle(x, y, w, 2, 0x3a4059).setDepth(8)
+    const line = this.add.rectangle(x, y, w, 2, 0x3a_40_59).setDepth(8)
     this.dynamic.push(line)
   }
 
@@ -700,9 +700,9 @@ export class Menu extends Scene {
     if (!entry?.hit) return
     const b = entry.hit.getBounds()
     const selected = entry === this.rows[this.row]?.[this.col]
-    this.highlight.fillStyle(0xffd54a, selected ? 0.14 : 0.06)
+    this.highlight.fillStyle(0xff_d5_4a, selected ? 0.14 : 0.06)
     this.highlight.fillRoundedRect(b.x, b.y, b.width, b.height, 10)
-    this.highlight.lineStyle(2, 0xffd54a, selected ? 0.75 : 0.3)
+    this.highlight.lineStyle(2, 0xff_d5_4a, selected ? 0.75 : 0.3)
     this.highlight.strokeRoundedRect(b.x, b.y, b.width, b.height, 10)
   }
 
@@ -711,7 +711,7 @@ export class Menu extends Scene {
     this.panel.clear()
     let bounds: Geom.Rectangle | null = null
     for (const o of this.dynamic) {
-      if (!(o instanceof GameObjects.Text) && !(o instanceof GameObjects.Image)) continue
+      if (!(o instanceof GameObjects.Text || o instanceof GameObjects.Image)) continue
       const r = o.getBounds()
       if (bounds) bounds = Geom.Rectangle.Union(bounds, r, new Geom.Rectangle())
       else bounds = new Geom.Rectangle(r.x, r.y, r.width, r.height)
@@ -725,7 +725,7 @@ export class Menu extends Scene {
     this.panel.fillRoundedRect(x, y, w, h, 18)
     this.panel.lineStyle(2, PANEL_BORDER, 0.9)
     this.panel.strokeRoundedRect(x, y, w, h, 18)
-    this.panel.fillStyle(0xffd54a, 0.5)
+    this.panel.fillStyle(0xff_d5_4a, 0.5)
     this.panel.fillRoundedRect(x + 24, y + 4, w - 48, 3, 1.5)
   }
 

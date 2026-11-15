@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { FOES, type FoeKind } from "./foeRosters"
-import { LEVELS, runLevelsSelfCheck } from "./levels"
+import { FOES, type FoeKind } from "./foeRosters.ts"
+import { LEVELS, runLevelsSelfCheck } from "./levels.ts"
 
 describe("levels", () => {
   it("passes the in-game self check", () => {
@@ -67,7 +67,7 @@ describe("levels", () => {
   // The `.DSC` bonus is the DOS `initlevel` value (GAMEPLAY.C): it is added to
   // score/money at level start and feeds the end-of-level money conversion.
   it("carries the DOS .DSC bonus score and money", () => {
-    expect(LEVELS.map((l) => l.bonusScore)).toEqual([0, 20000, 20000, 50000, 20000])
+    expect(LEVELS.map((l) => l.bonusScore)).toEqual([0, 20_000, 20_000, 50_000, 20_000])
     expect(LEVELS.map((l) => l.bonusMoney)).toEqual([400, 20, 560, 440, 0])
   })
 

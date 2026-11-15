@@ -5,7 +5,7 @@ import {
   parseSettings,
   runStoreSelfCheck,
   saveSettings,
-} from "./store"
+} from "./store.ts"
 
 describe("runStoreSelfCheck", () => {
   it("passes", () => {

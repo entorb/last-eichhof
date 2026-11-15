@@ -9,19 +9,19 @@ import {
   runModernSkinSelfCheck,
   sheetKeys,
   texKey,
-} from "../art/skin"
-import { generateUiIcons, runUiIconsSelfCheck, UI_ICON_KEYS } from "../art/uiIcons"
-import { getMusic, initAudio, runAudioSelfCheck, runSoundsSelfCheck } from "../audio"
-import { SPRITE_SHEETS } from "../data/enemySprites"
-import { FOES } from "../data/foeRosters"
-import { runLevelsSelfCheck } from "../data/levels"
-import { runPathSelfCheck } from "../data/path"
-import { runRunSelfCheck } from "../data/run"
-import { SOUNDS } from "../data/sounds"
-import { runStatsSelfCheck } from "../data/stats"
-import { loadSettings, runStoreSelfCheck } from "../data/store"
-import { runWeaponsSelfCheck, WEAPONS } from "../data/weapons"
-import { runControlsSelfCheck } from "../input/controls"
+} from "../art/skin.ts"
+import { generateUiIcons, runUiIconsSelfCheck, UI_ICON_KEYS } from "../art/uiIcons.ts"
+import { getMusic, initAudio, runAudioSelfCheck, runSoundsSelfCheck } from "../audio/index.ts"
+import { SPRITE_SHEETS } from "../data/enemySprites.ts"
+import { FOES } from "../data/foeRosters.ts"
+import { runLevelsSelfCheck } from "../data/levels.ts"
+import { runPathSelfCheck } from "../data/path.ts"
+import { runRunSelfCheck } from "../data/run.ts"
+import { SOUNDS } from "../data/sounds.ts"
+import { runStatsSelfCheck } from "../data/stats.ts"
+import { loadSettings, runStoreSelfCheck } from "../data/store.ts"
+import { runWeaponsSelfCheck, WEAPONS } from "../data/weapons.ts"
+import { runControlsSelfCheck } from "../input/controls.ts"
 
 export class Boot extends Scene {
   constructor() {
@@ -44,18 +44,18 @@ export class Boot extends Scene {
     applySkin(this)
 
     this.makeSprite("cork", CORK_W, CORK_H, (g) => {
-      g.fillStyle(0x9c7b45)
+      g.fillStyle(0x9c_7b_45)
       g.fillRoundedRect(0, 0, 12, 26, 4)
-      g.fillStyle(0xcaa46a)
+      g.fillStyle(0xca_a4_6a)
       g.fillRoundedRect(2, 2, 8, 22, 3)
-      g.fillStyle(0xe0c896)
+      g.fillStyle(0xe0_c8_96)
       g.fillRect(3, 4, 2, 16)
     })
 
     this.makeSprite("pellet", PELLET_W, PELLET_H, (g) => {
-      g.fillStyle(0xff5c5c)
+      g.fillStyle(0xff_5c_5c)
       g.fillCircle(5, 5, 5)
-      g.fillStyle(0xffd0d0)
+      g.fillStyle(0xff_d0_d0)
       g.fillCircle(5, 5, 2)
     })
 
@@ -132,7 +132,7 @@ export class Boot extends Scene {
   private assertAnimsMirrored() {
     for (const sheet of SPRITE_SHEETS.filter((s) => s.frames > 1)) {
       const [dos, modern] = sheetKeys(sheet).map((k) => this.anims.get(k))
-      if (!dos || !modern) throw new Error(`selfcheck: missing anim for ${sheet.key}`)
+      if (!(dos && modern)) throw new Error(`selfcheck: missing anim for ${sheet.key}`)
       const same =
         dos.frames.length === sheet.frames &&
         modern.frames.length === sheet.frames &&
@@ -173,7 +173,7 @@ export class Boot extends Scene {
         g.fillRoundedRect(4, 8, 16, 28, 4)
         g.fillStyle(light, 0.6)
         g.fillRect(6, 10, 3, 22)
-        g.fillStyle(0xf5e6b8)
+        g.fillStyle(0xf5_e6_b8)
         g.fillRect(6, 16, 12, 10)
         g.fillStyle(dark)
         const v = i % 4
@@ -196,7 +196,7 @@ export class Boot extends Scene {
     // Seeded by key, so every boot draws the same stars (stable snapshots).
     const rnd = new PhaserMath.RandomDataGenerator([key])
     for (let i = 0; i < count; i++) {
-      g.fillStyle(0xffffff, rnd.realInRange(minA, maxA))
+      g.fillStyle(0xff_ff_ff, rnd.realInRange(minA, maxA))
       g.fillRect(rnd.between(0, 255), rnd.between(0, 255), size, size)
     }
     g.generateTexture(key, 256, 256)

@@ -1,6 +1,6 @@
-import { FOES, ROSTERS, type RosterSpawn } from "./foeRosters"
-import { at } from "./lookup"
-import { PLAY } from "./playfield"
+import { FOES, ROSTERS, type RosterSpawn } from "./foeRosters.ts"
+import { at } from "./lookup.ts"
+import { PLAY } from "./playfield.ts"
 
 export interface LevelDef {
   n: number
@@ -14,8 +14,8 @@ export interface LevelDef {
   build(): RosterSpawn[]
 }
 
-const BG = [0x05060d, 0x0a0512, 0x00120f, 0x140707, 0x0d0a00]
-const TINT = [0xffffff, 0xc9a6ff, 0x8affc1, 0xff9a8a, 0xffd54a]
+const BG = [0x05_06_0d, 0x0a_05_12, 0x00_12_0f, 0x14_07_07, 0x0d_0a_00]
+const TINT = [0xff_ff_ff, 0xc9_a6_ff, 0x8a_ff_c1, 0xff_9a_8a, 0xff_d5_4a]
 
 export const LEVELS: LevelDef[] = ROSTERS.map((roster, i) => ({
   n: i + 1,

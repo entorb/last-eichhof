@@ -1,4 +1,4 @@
-import type { ControlsMode } from "../data/store"
+import type { ControlsMode } from "../data/store.ts"
 
 export function resolveTouchControls(mode: ControlsMode, deviceTouch: boolean): boolean {
   if (mode === "touch") return true

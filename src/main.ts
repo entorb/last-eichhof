@@ -1,6 +1,6 @@
 import type { Game as PhaserGame } from "phaser"
-import StartGame from "./game/main"
-import { captureInstallPrompt } from "./game/pwa"
+import StartGame from "./game/main.ts"
+import { captureInstallPrompt } from "./game/pwa.ts"
 
 // iOS < 15.4 has no svh, so #app stays 100vh (the large viewport) and the FIT
 // canvas runs behind Safari's toolbar after a portrait→landscape rotation. Size

@@ -5,7 +5,7 @@ import {
   resolveTouchControls,
   runControlsSelfCheck,
   stickFromForce,
-} from "./controls"
+} from "./controls.ts"
 
 const none: MoveKeys = {
   left: false,

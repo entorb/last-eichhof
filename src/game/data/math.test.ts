@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { clamp } from "./math"
+import { clamp } from "./math.ts"
 
 describe("clamp", () => {
   it("clamps to the range", () => {

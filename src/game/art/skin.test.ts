@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { SPRITE_SHEETS } from "../data/enemySprites"
-import { FOES } from "../data/foeRosters"
-import { WEAPONS } from "../data/weapons"
-import { FOE_ART, FOE_ART_KEYS } from "./foeArt"
-import { RIG_ART_KEYS } from "./rigArt"
+import { SPRITE_SHEETS } from "../data/enemySprites.ts"
+import { FOES } from "../data/foeRosters.ts"
+import { WEAPONS } from "../data/weapons.ts"
+import { FOE_ART, FOE_ART_KEYS } from "./foeArt.ts"
+import { RIG_ART_KEYS } from "./rigArt.ts"
 import {
   dosKey,
   drawModernSheetFrame,
@@ -13,8 +13,8 @@ import {
   runModernSkinSelfCheck,
   setGraphicsMode,
   texKey,
-} from "./skin"
-import type { Ctx } from "./vector"
+} from "./skin.ts"
+import type { Ctx } from "./vector.ts"
 
 describe("modern graphics skin", () => {
   it("passes its self-check", () => {
@@ -47,6 +47,7 @@ describe("modern graphics skin", () => {
     }
   })
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: shortcut: existing complex logic, refactor when touched next
   it("covers every texture the game asks for", () => {
     const keys = new Set<string>()
     for (const kind of Object.keys(FOES) as (keyof typeof FOES)[]) {
@@ -96,7 +97,7 @@ describe("modern graphics skin", () => {
         // Drop the slot offset: it differs per frame even when the art does not.
         return log.slice(2).join("\n")
       })
-      for (const f of frames) expect(f, `${sheet.key} draws nothing`).toMatch(/fill|stroke/)
+      for (const f of frames) expect(f, `${sheet.key} draws nothing`).toMatch(/fill|stroke/u)
       const distinct = new Set(frames).size
       if (distinct < Math.max(2, Math.ceil(sheet.frames * 0.75))) {
         dropped.push(`${sheet.key} ${distinct}/${sheet.frames}`)
@@ -116,7 +117,6 @@ function recorder(log: string[]): Ctx {
       )
       if (name.startsWith("create")) return { addColorStop: rec("stop") }
       if (name === "measureText") return { width: String(args[0]).length * 10 }
-      return undefined
     }
   return new Proxy({} as Ctx, {
     get: (_, prop) => rec(String(prop)),

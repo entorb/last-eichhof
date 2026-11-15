@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { FOES, type FoeKind } from "./foeRosters"
+import { FOES, type FoeKind } from "./foeRosters.ts"
 
 const ROLES = new Set(["chaff", "miniboss", "boss"])
 

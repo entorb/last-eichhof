@@ -1,11 +1,11 @@
 import { type GameObjects, Geom, Input, Scene, type Types } from "phaser"
-import { applySkin, texKey } from "../art/skin"
-import { getMusic, getSamples, getSfx } from "../audio"
-import { getLevel, LEVELS } from "../data/levels"
-import { at } from "../data/lookup"
-import { PLAY } from "../data/playfield"
-import { getRun, MAX_SPEEDUPS, type Run, shipSpeed } from "../data/run"
-import { loadSettings } from "../data/store"
+import { applySkin, texKey } from "../art/skin.ts"
+import { getMusic, getSamples, getSfx } from "../audio/index.ts"
+import { getLevel, LEVELS } from "../data/levels.ts"
+import { at } from "../data/lookup.ts"
+import { PLAY } from "../data/playfield.ts"
+import { getRun, MAX_SPEEDUPS, type Run, shipSpeed } from "../data/run.ts"
+import { loadSettings } from "../data/store.ts"
 import {
   canPlace,
   GRID,
@@ -18,10 +18,10 @@ import {
   type Weapon,
   weaponById,
   weaponStats,
-} from "../data/weapons"
-import * as Flow from "../flow"
-import { resolveTouchControls } from "../input/controls"
-import { TouchPad } from "../input/touchpad"
+} from "../data/weapons.ts"
+import * as Flow from "../flow.ts"
+import { resolveTouchControls } from "../input/controls.ts"
+import { TouchPad } from "../input/touchpad.ts"
 
 const PLACE = { x: PLAY.cx, y: 320, w: 360, h: 240 }
 // DOS shop used a 4 px grid and a 4 px margin inside the placement area.
@@ -81,7 +81,7 @@ export class Shop extends Scene {
     this.ghost = null
     this.ghostBox = null
 
-    this.add.rectangle(0, 0, PLAY.w, PLAY.h, 0x05060d).setOrigin(0).setDepth(-20)
+    this.add.rectangle(0, 0, PLAY.w, PLAY.h, 0x05_06_0d).setOrigin(0).setDepth(-20)
     this.add
       .text(PLAY.cx, 60, "SHOP", {
         fontFamily: "monospace",
@@ -225,7 +225,7 @@ export class Shop extends Scene {
     this.ghostY = this.clampGhost(this.ghostY, PLACE.y, PLACE.h, h)
     if (this.ghost) this.ghost.setPosition(this.ghostX, this.ghostY)
     if (this.ghostBox) this.ghostBox.setPosition(this.ghostX, this.ghostY)
-    if (!confirm || !this.pending) return
+    if (!(confirm && this.pending)) return
 
     const candidate = {
       defId: this.pending.id,
@@ -401,9 +401,9 @@ export class Shop extends Scene {
     this.ghostY = this.clampGhost(PLACE.y - PLACE.h / 2 + MARGIN + w.h / 2, PLACE.y, PLACE.h, w.h)
 
     const box = this.add.graphics().setDepth(5)
-    box.lineStyle(2, 0x334155)
+    box.lineStyle(2, 0x33_41_55)
     box.strokeRect(PLACE.x - PLACE.w / 2, PLACE.y - PLACE.h / 2, PLACE.w, PLACE.h)
-    box.fillStyle(0x1e293b, 0.4)
+    box.fillStyle(0x1e_29_3b, 0.4)
     box.fillRect(PLACE.x - PLACE.w / 2, PLACE.y - PLACE.h / 2, PLACE.w, PLACE.h)
     this.dynamic.push(box)
 
@@ -423,7 +423,7 @@ export class Shop extends Scene {
 
     this.ghostBox = this.add
       .rectangle(this.ghostX, this.ghostY, w.w, w.h)
-      .setStrokeStyle(2, 0xffffff)
+      .setStrokeStyle(2, 0xff_ff_ff)
       .setDepth(8)
     this.dynamic.push(this.ghostBox)
 

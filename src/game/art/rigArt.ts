@@ -1,4 +1,4 @@
-import { drawArt } from "./foeArt"
+import { drawArt } from "./foeArt.ts"
 import {
   type Ctx,
   circlePath,
@@ -10,18 +10,18 @@ import {
   roundRectPath,
   shade,
   spec,
-} from "./vector"
+} from "./vector.ts"
 
-const GLASS_GREEN = 0x2f7d32
-const GLASS_AMBER = 0xc98a1e
-const GLASS_YELLOW = 0xd8bb2a
-const GLASS_CLEAR = 0xd6dde6
-const GLASS_PINK = 0xd0407a
-const GLASS_CYAN = 0x2ab5c4
-const CORK = 0xb98a4b
-const STEEL = 0xb9c2cf
-const STEEL_DARK = 0x6b7484
-const CREAM = 0xf4ecd8
+const GLASS_GREEN = 0x2f_7d_32
+const GLASS_AMBER = 0xc9_8a_1e
+const GLASS_YELLOW = 0xd8_bb_2a
+const GLASS_CLEAR = 0xd6_dd_e6
+const GLASS_PINK = 0xd0_40_7a
+const GLASS_CYAN = 0x2a_b5_c4
+const CORK = 0xb9_8a_4b
+const STEEL = 0xb9_c2_cf
+const STEEL_DARK = 0x6b_74_84
+const CREAM = 0xf4_ec_d8
 
 const TAU = Math.PI * 2
 
@@ -76,7 +76,7 @@ function barrelBottle(ctx: Ctx, w: number, h: number, glass: number, label: numb
     ctx.closePath()
   }
   body()
-  ctx.fillStyle = linear(ctx, -hw, 0, hw, 0, shade(glass, 0.4), mix(glass, 0xffffff, 0.5))
+  ctx.fillStyle = linear(ctx, -hw, 0, hw, 0, shade(glass, 0.4), mix(glass, 0xff_ff_ff, 0.5))
   ctx.fill()
   body()
   ctx.fillStyle = linear(ctx, -hw, 0, hw, 0, shade(glass, 0.85), glass, 0.15, 0.9)
@@ -106,7 +106,7 @@ function neckBottle(ctx: Ctx, w: number, h: number, glass: number, label: number
     ctx.closePath()
   }
   body()
-  ctx.fillStyle = linear(ctx, -hw, 0, hw, 0, shade(glass, 0.4), mix(glass, 0xffffff, 0.5))
+  ctx.fillStyle = linear(ctx, -hw, 0, hw, 0, shade(glass, 0.4), mix(glass, 0xff_ff_ff, 0.5))
   ctx.fill()
   body()
   ctx.fillStyle = linear(ctx, -hw, 0, hw, 0, shade(glass, 0.85), glass, 0.15, 0.9)
@@ -130,12 +130,12 @@ function goblet(ctx: Ctx, w: number, h: number, glass: number) {
     ctx.closePath()
   }
   bowl()
-  ctx.fillStyle = linear(ctx, -hw, 0, hw, 0, shade(glass, 0.45), mix(glass, 0xffffff, 0.55))
+  ctx.fillStyle = linear(ctx, -hw, 0, hw, 0, shade(glass, 0.45), mix(glass, 0xff_ff_ff, 0.55))
   ctx.fill()
   bowl()
-  ctx.fillStyle = linear(ctx, 0, -hh, 0, hh * 0.1, mix(glass, 0xffffff, 0.3), glass, 0.9, 0.95)
+  ctx.fillStyle = linear(ctx, 0, -hh, 0, hh * 0.1, mix(glass, 0xff_ff_ff, 0.3), glass, 0.9, 0.95)
   ctx.fill()
-  ctx.fillStyle = linear(ctx, 0, -hh * 1.1, 0, -hh * 0.7, 0xfff8e6, 0xe6d9a8)
+  ctx.fillStyle = linear(ctx, 0, -hh * 1.1, 0, -hh * 0.7, 0xff_f8_e6, 0xe6_d9_a8)
   ellipsePath(ctx, 0, -hh * 0.94, hw * 0.94, hh * 0.2)
   ctx.fill()
   spec(ctx, -hw * 0.5, -hh * 0.6, w * 0.16, h * 0.5, 0.4)
@@ -158,7 +158,7 @@ function canRig(ctx: Ctx, w: number, h: number, i: number) {
     hw,
     0,
     shade(GLASS_CYAN, 0.4),
-    mix(GLASS_CYAN, 0xffffff, 0.55),
+    mix(GLASS_CYAN, 0xff_ff_ff, 0.55),
   )
   roundRectPath(ctx, -hw * 0.82, -hh, hw * 1.64, h * 0.96, w * 0.16)
   ctx.fill()
@@ -179,19 +179,19 @@ function canRig(ctx: Ctx, w: number, h: number, i: number) {
 function cannonRig(ctx: Ctx, w: number, h: number) {
   const hw = w / 2
   const hh = h / 2
-  ctx.fillStyle = linear(ctx, -hw, 0, hw, 0, 0x59606f, 0x22262f)
+  ctx.fillStyle = linear(ctx, -hw, 0, hw, 0, 0x59_60_6f, 0x22_26_2f)
   roundRectPath(ctx, -hw * 0.5, -hh, hw, h * 0.82, w * 0.12)
   ctx.fill()
   ctx.fillStyle = linear(ctx, -hw * 0.3, 0, hw * 0.3, 0, STEEL, STEEL_DARK)
   roundRectPath(ctx, -hw * 0.3, -hh * 0.2, hw * 0.6, h * 0.5, w * 0.1)
   ctx.fill()
-  ctx.fillStyle = css(0x14161d)
+  ctx.fillStyle = css(0x14_16_1d)
   circlePath(ctx, 0, -hh * 0.86, hw * 0.3)
   ctx.fill()
-  ctx.fillStyle = css(0xff8a3a, 0.9)
+  ctx.fillStyle = css(0xff_8a_3a, 0.9)
   circlePath(ctx, 0, -hh * 0.86, hw * 0.16)
   ctx.fill()
-  ctx.fillStyle = css(0x8c96a8, 0.9)
+  ctx.fillStyle = css(0x8c_96_a8, 0.9)
   ctx.fillRect(-hw * 0.34, hh * 0.3, hw * 0.68, h * 0.12)
 }
 
@@ -222,7 +222,7 @@ function energyBolt(ctx: Ctx, w: number, h: number, color: number, core: number,
   ctx.fillStyle = linear(ctx, -short, 0, short, 0, color, shade(core, 1.1), 0.5, 0.9)
   ctx.fill()
   spec(ctx, -short * 0.45, -long * 0.4, short * 0.4, long * 0.7, 0.55)
-  ctx.fillStyle = radial(ctx, 0, 0, 0, short * 1.05, 0xffffff, color, 0.95, 0.2)
+  ctx.fillStyle = radial(ctx, 0, 0, 0, short * 1.05, 0xff_ff_ff, color, 0.95, 0.2)
   circlePath(ctx, 0, 0, short * 1)
   ctx.fill()
   ctx.restore()
@@ -230,13 +230,13 @@ function energyBolt(ctx: Ctx, w: number, h: number, color: number, core: number,
 
 function cannonBall(ctx: Ctx, w: number, h: number) {
   const r = Math.min(w, h) / 2
-  ctx.fillStyle = radial(ctx, -r * 0.25, 0, r * 0.12, r * 1.2, 0x8c96a8, 0x2b3040)
+  ctx.fillStyle = radial(ctx, -r * 0.25, 0, r * 0.12, r * 1.2, 0x8c_96_a8, 0x2b_30_40)
   circlePath(ctx, 0, 0, r * 0.9)
   ctx.fill()
-  ctx.fillStyle = radial(ctx, 0, -r * 0.2, r * 0.1, r * 0.8, 0xfff0a0, 0xd8802a, 0.5, 0)
+  ctx.fillStyle = radial(ctx, 0, -r * 0.2, r * 0.1, r * 0.8, 0xff_f0_a0, 0xd8_80_2a, 0.5, 0)
   circlePath(ctx, 0, -r * 0.06, r * 0.75)
   ctx.fill()
-  ctx.fillStyle = css(0xffffff, 0.5)
+  ctx.fillStyle = css(0xff_ff_ff, 0.5)
   circlePath(ctx, -r * 0.32, -r * 0.34, r * 0.2)
   ctx.fill()
 }
@@ -286,7 +286,7 @@ function shipFrame(ctx: Ctx, w: number, h: number, i: number, n: number) {
     ctx.lineTo(hw * 0.86, hh * 0.62)
     ctx.closePath()
   }
-  ctx.fillStyle = radial(ctx, 0, hh * 0.9, 0, h * 0.5, 0xffe9a8, 0xff8a2a, 0.7 * thrust, 0)
+  ctx.fillStyle = radial(ctx, 0, hh * 0.9, 0, h * 0.5, 0xff_e9_a8, 0xff_8a_2a, 0.7 * thrust, 0)
   ctx.beginPath()
   ctx.moveTo(-hw * 0.5, hh * 0.4)
   ctx.quadraticCurveTo(0, hh + h * 0.42 * thrust, hw * 0.5, hh * 0.4)
@@ -300,15 +300,15 @@ function shipFrame(ctx: Ctx, w: number, h: number, i: number, n: number) {
     hw,
     0,
     shade(GLASS_GREEN, 0.35),
-    mix(GLASS_GREEN, 0xffffff, 0.55),
+    mix(GLASS_GREEN, 0xff_ff_ff, 0.55),
   )
   ctx.fill()
   body()
   ctx.fillStyle = linear(ctx, -hw, 0, hw, 0, shade(GLASS_GREEN, 0.8), GLASS_GREEN, 0.1, 0.92)
   ctx.fill()
   spec(ctx, hw * 0.22, -hh * 0.6, w * 0.22, h * 0.6, 0.4)
-  wrapLabel(ctx, hw * 0.8, -hh * 0.3, h * 0.34, spinPhase(i, n), 0xc0392b)
-  ctx.fillStyle = linear(ctx, -hw * 0.3, 0, hw * 0.3, 0, 0xd8b483, CORK)
+  wrapLabel(ctx, hw * 0.8, -hh * 0.3, h * 0.34, spinPhase(i, n), 0xc0_39_2b)
+  ctx.fillStyle = linear(ctx, -hw * 0.3, 0, hw * 0.3, 0, 0xd8_b4_83, CORK)
   roundRectPath(ctx, -hw * 0.3, -hh, hw * 0.6, h * 0.1, h * 0.03)
   ctx.fill()
 }
@@ -322,16 +322,16 @@ function explosionFrame(ctx: Ctx, w: number, h: number, i: number, n: number) {
   const r = hw * grow
   // Opaque out to the inner radius, then a short falloff: a gradient that fades
   // from the centre reads as a washed tan disc instead of a fireball.
-  ctx.fillStyle = radial(ctx, 0, 0, r * 0.55, r, 0xffb43c, 0xff4a08, fade, 0)
+  ctx.fillStyle = radial(ctx, 0, 0, r * 0.55, r, 0xff_b4_3c, 0xff_4a_08, fade, 0)
   circlePath(ctx, 0, 0, r)
   ctx.fill()
-  ctx.fillStyle = radial(ctx, 0, 0, r * 0.3, r * 0.62, 0xfff6cc, 0xffd24a, fade, 0)
+  ctx.fillStyle = radial(ctx, 0, 0, r * 0.3, r * 0.62, 0xff_f6_cc, 0xff_d2_4a, fade, 0)
   circlePath(ctx, 0, 0, r * 0.62)
   ctx.fill()
-  ctx.fillStyle = radial(ctx, 0, 0, 0, r * 0.3, 0xffffff, 0xfff0b0, fade, 0)
+  ctx.fillStyle = radial(ctx, 0, 0, 0, r * 0.3, 0xff_ff_ff, 0xff_f0_b0, fade, 0)
   circlePath(ctx, 0, 0, r * 0.3 * (1 - t * 0.45))
   ctx.fill()
-  ctx.strokeStyle = css(0xfff6d0, 0.85 * fade)
+  ctx.strokeStyle = css(0xff_f6_d0, 0.85 * fade)
   ctx.lineWidth = Math.max(1.5, hh * 0.13 * (1 - t * 0.5))
   circlePath(ctx, 0, 0, r * 0.95)
   ctx.stroke()
@@ -339,7 +339,7 @@ function explosionFrame(ctx: Ctx, w: number, h: number, i: number, n: number) {
     const a = (k / 12) * TAU + 0.26
     const d = r * (0.6 + 0.55 * ((k % 4) / 4))
     const len = hh * (0.3 - t * 0.16)
-    ctx.fillStyle = css(k % 2 === 0 ? 0xfff2b0 : 0xff9a2a, 0.85 * fade)
+    ctx.fillStyle = css(k % 2 === 0 ? 0xff_f2_b0 : 0xff_9a_2a, 0.85 * fade)
     circlePath(ctx, Math.cos(a) * d, Math.sin(a) * d, Math.max(1, len * 0.5))
     ctx.fill()
   }
@@ -347,21 +347,23 @@ function explosionFrame(ctx: Ctx, w: number, h: number, i: number, n: number) {
 
 function pelletFrame(ctx: Ctx, w: number, h: number) {
   const r = Math.min(w, h) / 2
-  ctx.fillStyle = radial(ctx, 0, 0, 0, r, 0xffb0a0, 0xd0281c, 0.9, 0)
+  ctx.fillStyle = radial(ctx, 0, 0, 0, r, 0xff_b0_a0, 0xd0_28_1c, 0.9, 0)
   circlePath(ctx, 0, 0, r)
   ctx.fill()
-  ctx.fillStyle = radial(ctx, -r * 0.3, -r * 0.3, 0, r * 0.7, 0xfff0e0, 0xff5c4a)
+  ctx.fillStyle = radial(ctx, -r * 0.3, -r * 0.3, 0, r * 0.7, 0xff_f0_e0, 0xff_5c_4a)
   circlePath(ctx, 0, 0, r * 0.66)
   ctx.fill()
-  ctx.fillStyle = css(0xffffff, 0.85)
+  ctx.fillStyle = css(0xff_ff_ff, 0.85)
   circlePath(ctx, -r * 0.2, -r * 0.24, r * 0.22)
   ctx.fill()
 }
 
 const MOUNTS: Record<string, RigDraw> = {
-  "wpn-lager": (ctx, w, h, i, n) => barrelBottle(ctx, w, h, GLASS_AMBER, 0xc0392b, spinPhase(i, n)),
-  "wpn-pony": (ctx, w, h, i, n) => neckBottle(ctx, w, h, GLASS_CLEAR, 0x2b4fc0, spinPhase(i, n)),
-  "wpn-barbara": (ctx, w, h, i, n) => neckBottle(ctx, w, h, GLASS_PINK, 0x7a3fb0, spinPhase(i, n)),
+  "wpn-lager": (ctx, w, h, i, n) =>
+    barrelBottle(ctx, w, h, GLASS_AMBER, 0xc0_39_2b, spinPhase(i, n)),
+  "wpn-pony": (ctx, w, h, i, n) => neckBottle(ctx, w, h, GLASS_CLEAR, 0x2b_4f_c0, spinPhase(i, n)),
+  "wpn-barbara": (ctx, w, h, i, n) =>
+    neckBottle(ctx, w, h, GLASS_PINK, 0x7a_3f_b0, spinPhase(i, n)),
   "wpn-dunkel": (ctx, w, h) => neckBottle(ctx, w, h, GLASS_AMBER, GLASS_GREEN, 0),
   "wpn-stange": (ctx, w, h) => neckBottle(ctx, w, h, GLASS_CLEAR, GLASS_YELLOW, 0),
   "wpn-pokal": (ctx, w, h) => goblet(ctx, w, h, GLASS_YELLOW),
@@ -379,27 +381,27 @@ const SHOTS: Record<string, RigDraw> = {
       ctx,
       w,
       h,
-      0xffd54a,
-      mix(0xffd54a, 0xffffff, 0.5 + 0.5 * Math.cos(spinPhase(i, n))),
+      0xff_d5_4a,
+      mix(0xff_d5_4a, 0xff_ff_ff, 0.5 + 0.5 * Math.cos(spinPhase(i, n))),
       0.62 + 0.3 * Math.sin(spinPhase(i, n)),
     ),
-  "shot-10": (ctx, w, h) => energyBolt(ctx, w, h, 0x7ee0ff, 0xffffff, 0.86),
-  "shot-11": (ctx, w, h) => energyBolt(ctx, w, h, 0x5fd35f, 0xe2ffe2, 0.86),
-  "shot-12": (ctx, w, h) => energyBolt(ctx, w, h, 0xb4bac4, 0xf2f4f7, 0.86),
-  "shot-13": (ctx, w, h) => energyBolt(ctx, w, h, 0xff7a6a, 0xffe2dc, 0.86),
+  "shot-10": (ctx, w, h) => energyBolt(ctx, w, h, 0x7e_e0_ff, 0xff_ff_ff, 0.86),
+  "shot-11": (ctx, w, h) => energyBolt(ctx, w, h, 0x5f_d3_5f, 0xe2_ff_e2, 0.86),
+  "shot-12": (ctx, w, h) => energyBolt(ctx, w, h, 0xb4_ba_c4, 0xf2_f4_f7, 0.86),
+  "shot-13": (ctx, w, h) => energyBolt(ctx, w, h, 0xff_7a_6a, 0xff_e2_dc, 0.86),
   "shot-14": cannonBall,
-  "shot-15": (ctx, w, h, i) => capsule(ctx, w, h, 0xd8322a, STEEL, i),
-  "shot-16": (ctx, w, h, i) => capsule(ctx, w, h, 0x7ee0ff, 0xeaf8ff, i),
-  "shot-17": (ctx, w, h, i) => capsule(ctx, w, h, 0x5a6cff, 0xdfe4ff, i),
+  "shot-15": (ctx, w, h, i) => capsule(ctx, w, h, 0xd8_32_2a, STEEL, i),
+  "shot-16": (ctx, w, h, i) => capsule(ctx, w, h, 0x7e_e0_ff, 0xea_f8_ff, i),
+  "shot-17": (ctx, w, h, i) => capsule(ctx, w, h, 0x5a_6c_ff, 0xdf_e4_ff, i),
   // The four DOS fireballs are all red; vary only the hot core.
-  "shot-18": (ctx, w, h) => energyBolt(ctx, w, h, 0xff3a2a, 0xffe0c0, 0.82),
-  "shot-19": (ctx, w, h) => energyBolt(ctx, w, h, 0xff5a2a, 0xfff0b0, 0.82),
-  "shot-20": (ctx, w, h) => energyBolt(ctx, w, h, 0xff2a3a, 0xffd0d0, 0.82),
-  "shot-21": (ctx, w, h) => energyBolt(ctx, w, h, 0xff4a2a, 0xffffff, 0.82),
+  "shot-18": (ctx, w, h) => energyBolt(ctx, w, h, 0xff_3a_2a, 0xff_e0_c0, 0.82),
+  "shot-19": (ctx, w, h) => energyBolt(ctx, w, h, 0xff_5a_2a, 0xff_f0_b0, 0.82),
+  "shot-20": (ctx, w, h) => energyBolt(ctx, w, h, 0xff_2a_3a, 0xff_d0_d0, 0.82),
+  "shot-21": (ctx, w, h) => energyBolt(ctx, w, h, 0xff_4a_2a, 0xff_ff_ff, 0.82),
 }
 
 const SOLOS: Record<string, (ctx: Ctx, w: number, h: number) => void> = {
-  cork: cork,
+  cork,
   pellet: pelletFrame,
 }
 

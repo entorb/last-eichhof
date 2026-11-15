@@ -1,8 +1,8 @@
 import type { Scene } from "phaser"
-import { SPRITE_SHEETS, type SpriteSheetDef } from "../data/enemySprites"
-import { FOES } from "../data/foeRosters"
-import { type GraphicsMode, loadSettings } from "../data/store"
-import { WEAPONS } from "../data/weapons"
+import { SPRITE_SHEETS, type SpriteSheetDef } from "../data/enemySprites.ts"
+import { FOES } from "../data/foeRosters.ts"
+import { type GraphicsMode, loadSettings } from "../data/store.ts"
+import { WEAPONS } from "../data/weapons.ts"
 import {
   drawFoeArt,
   FOE_ART,
@@ -10,9 +10,9 @@ import {
   type FoeArtDef,
   type FoeMotion,
   foeAspect,
-} from "./foeArt"
-import { drawRigArt, RIG_ART_KEYS } from "./rigArt"
-import type { Ctx } from "./vector"
+} from "./foeArt.ts"
+import { drawRigArt, RIG_ART_KEYS } from "./rigArt.ts"
+import type { Ctx } from "./vector.ts"
 
 export const MODERN_PREFIX = "m-"
 

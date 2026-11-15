@@ -1,6 +1,6 @@
-import { FOE_ART } from "./game/art/foeArt"
-import { drawModernSheet, type ModernSheet, modernSheets } from "./game/art/skin"
-import { SPRITE_SHEETS } from "./game/data/enemySprites"
+import { FOE_ART } from "./game/art/foeArt.ts"
+import { drawModernSheet, type ModernSheet, modernSheets } from "./game/art/skin.ts"
+import { SPRITE_SHEETS } from "./game/data/enemySprites.ts"
 
 // Dev-only inspector: a side-by-side sheet of the DOS art and the modern skin.
 // Not part of the production build (Vite only bundles `index.html`).
@@ -67,7 +67,7 @@ function sheetNode(sheet: ModernSheet, kind: "dos" | "modern", zoom: number): HT
   return out
 }
 
-function describe(key: string): string {
+function describeItem(key: string): string {
   const def = FOE_ART[key]
   if (!def) return "rig"
   const bits: string[] = [def.art]
@@ -87,7 +87,7 @@ function visibleSheets(): ModernSheet[] {
     if (state.anim && s.frames < 2) return false
     if (state.big && area(s) <= 5000) return false
     if (!state.q) return true
-    const hay = `${s.key} ${describe(s.key)} ${s.frameWidth}x${s.frameHeight}`.toLowerCase()
+    const hay = `${s.key} ${describeItem(s.key)} ${s.frameWidth}x${s.frameHeight}`.toLowerCase()
     return hay.includes(state.q)
   })
 }
@@ -102,7 +102,7 @@ function render(): void {
       ["key", sheet.key],
       ["meta", `${sheet.frameWidth}x${sheet.frameHeight}`],
       ["meta", String(sheet.frames)],
-      ["art", describe(sheet.key)],
+      ["art", describeItem(sheet.key)],
     ]
     for (const [cls, text] of cells) {
       const td = document.createElement("td")
@@ -131,7 +131,7 @@ function paintViewer(): void {
   const { sheet, kind } = current
   el("vkey").textContent = sheet.key
   el("vmeta").textContent =
-    `${sheet.frameWidth}x${sheet.frameHeight} · ${sheet.frames} frame(s) · ${describe(sheet.key)}`
+    `${sheet.frameWidth}x${sheet.frameHeight} · ${sheet.frames} frame(s) · ${describeItem(sheet.key)}`
   const body = el("v-body")
   body.replaceChildren()
   if (kind === "dos") {
@@ -200,7 +200,7 @@ function wire(): void {
     }
   })
   window.addEventListener("keydown", (e) => {
-    if (!viewer.open || !current) return
+    if (!(viewer.open && current)) return
     if (e.key === "1") {
       current.kind = "dos"
       paintViewer()

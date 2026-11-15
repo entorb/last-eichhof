@@ -1,4 +1,4 @@
-import { SPRITE_SHEETS } from "./enemySprites"
+import { SPRITE_SHEETS } from "./enemySprites.ts"
 
 // Placement grid: the DOS shop moved/placed on a 4 px grid, scaled 3x.
 export const GRID = 12
@@ -67,7 +67,7 @@ export const WEAPONS: Weapon[] = [
     period: 200,
     w: 30,
     h: 90,
-    tint: 0xffffff,
+    tint: 0xff_ff_ff,
     starter: true,
     emitters: [UP(2, 840, 0, -3, "shot-9")],
   },
@@ -78,7 +78,7 @@ export const WEAPONS: Weapon[] = [
     period: 350,
     w: 30,
     h: 75,
-    tint: 0xffd54a,
+    tint: 0xff_d5_4a,
     starter: false,
     emitters: [UP(3, 600, 0, -18, "shot-10")],
   },
@@ -89,7 +89,7 @@ export const WEAPONS: Weapon[] = [
     period: 250,
     w: 30,
     h: 75,
-    tint: 0xf0a52e,
+    tint: 0xf0_a5_2e,
     starter: false,
     emitters: [
       {
@@ -126,7 +126,7 @@ export const WEAPONS: Weapon[] = [
     period: 250,
     w: 30,
     h: 75,
-    tint: 0xffb3d9,
+    tint: 0xff_b3_d9,
     starter: false,
     emitters: [
       {
@@ -161,7 +161,7 @@ export const WEAPONS: Weapon[] = [
     period: 300,
     w: 30,
     h: 75,
-    tint: 0x8a6238,
+    tint: 0x8a_62_38,
     starter: false,
     emitters: [
       {
@@ -183,7 +183,7 @@ export const WEAPONS: Weapon[] = [
     period: 350,
     w: 30,
     h: 42,
-    tint: 0xc8ccd4,
+    tint: 0xc8_cc_d4,
     starter: false,
     emitters: [
       {
@@ -218,7 +218,7 @@ export const WEAPONS: Weapon[] = [
     period: 300,
     w: 42,
     h: 36,
-    tint: 0xc77dff,
+    tint: 0xc7_7d_ff,
     starter: false,
     emitters: [
       {
@@ -239,7 +239,7 @@ export const WEAPONS: Weapon[] = [
     period: 1050,
     w: 36,
     h: 60,
-    tint: 0x9fe0ff,
+    tint: 0x9f_e0_ff,
     starter: false,
     emitters: [
       {
@@ -301,7 +301,7 @@ export const WEAPONS: Weapon[] = [
     period: 450,
     w: 48,
     h: 87,
-    tint: 0xff5c5c,
+    tint: 0xff_5c_5c,
     starter: false,
     emitters: [UP(6, 600, 12, -36, "shot-15")],
   },
@@ -394,7 +394,7 @@ export function runWeaponsSelfCheck(): void {
   assert(moneyForLevel(0) === 0, "money floor base")
   assert(moneyForLevel(999) === 0, "money just below step")
   assert(moneyForLevel(1000) === 5, "money first step")
-  assert(moneyForLevel(10000) === 20, "money large")
+  assert(moneyForLevel(10_000) === 20, "money large")
   assert(moneyForLevel(-3000) === 0, "money truncates toward zero")
   assert(moneyForLevel(-4000) === -5, "money can go negative")
   assert(sellValue(2000) === 1500, "sell 75%")

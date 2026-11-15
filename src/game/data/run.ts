@@ -1,5 +1,5 @@
-import { DIFFICULTY, loadSettings } from "./store"
-import type { Placement } from "./weapons"
+import { DIFFICULTY, loadSettings } from "./store.ts"
+import type { Placement } from "./weapons.ts"
 
 // DOS `STARTSHIPSPEED` 4 px/frame, `W_SPEEDUP` +2 px/frame, `MAXSHIPSPEED` 8
 // (max 2 speedups). 20 Hz, 3× scale → ×60 px/s.

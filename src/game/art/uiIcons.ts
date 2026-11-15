@@ -80,15 +80,15 @@ function badge(ctx: Ctx, dark: number, light: number) {
   ctx.fillStyle = linear(ctx, 0, 0, 0, SIZE, light, dark)
   roundRect(ctx, 1.5, 1.5, 21, 21, 5)
   ctx.fill()
-  ctx.strokeStyle = css(0xffffff, 0.8)
+  ctx.strokeStyle = css(0xff_ff_ff, 0.8)
   ctx.lineWidth = 1.5
   ctx.stroke()
 }
 
 const drawers: Record<string, Draw> = {
   "ui-forward": (ctx) => {
-    glow(ctx, 0x59d16b)
-    ctx.fillStyle = linear(ctx, 0, 0, SIZE, SIZE, 0x7ee787, 0x2ea043)
+    glow(ctx, 0x59_d1_6b)
+    ctx.fillStyle = linear(ctx, 0, 0, SIZE, SIZE, 0x7e_e7_87, 0x2e_a0_43)
     ctx.beginPath()
     ctx.moveTo(5, 3)
     ctx.lineTo(5, 21)
@@ -98,15 +98,15 @@ const drawers: Record<string, Draw> = {
   },
 
   "ui-buy": (ctx) => {
-    badge(ctx, 0x7a3d00, 0xffb829)
-    ctx.fillStyle = css(0x5c2d00)
+    badge(ctx, 0x7a_3d_00, 0xff_b8_29)
+    ctx.fillStyle = css(0x5c_2d_00)
     ctx.fillRect(10, 8, 4, 8)
     ctx.fillRect(8, 10, 8, 4)
   },
 
   "ui-upgrade": (ctx) => {
-    badge(ctx, 0x1f6fcc, 0x4da3ff)
-    ctx.fillStyle = css(0x0b3a69)
+    badge(ctx, 0x1f_6f_cc, 0x4d_a3_ff)
+    ctx.fillStyle = css(0x0b_3a_69)
     ctx.beginPath()
     ctx.moveTo(12, 5)
     ctx.lineTo(20, 13)
@@ -118,23 +118,23 @@ const drawers: Record<string, Draw> = {
   },
 
   "ui-sell": (ctx) => {
-    glow(ctx, 0xff5f6e)
+    glow(ctx, 0xff_5f_6e)
     const g = ctx.createRadialGradient(8, 8, 1, 12, 12, 12)
-    g.addColorStop(0, css(0xffb3ba))
-    g.addColorStop(0.55, css(0xff5f6e))
-    g.addColorStop(1, css(0x7a1420))
+    g.addColorStop(0, css(0xff_b3_ba))
+    g.addColorStop(0.55, css(0xff_5f_6e))
+    g.addColorStop(1, css(0x7a_14_20))
     ctx.fillStyle = g
     ctx.beginPath()
     ctx.arc(12, 12, 11, 0, Math.PI * 2)
     ctx.fill()
-    ctx.strokeStyle = css(0xffe0e3, 0.9)
+    ctx.strokeStyle = css(0xff_e0_e3, 0.9)
     ctx.lineWidth = 1.5
     ctx.stroke()
   },
 
   "ui-play": (ctx) => {
-    badge(ctx, 0x1f7a35, 0x2ea043)
-    ctx.fillStyle = css(0xffffff)
+    badge(ctx, 0x1f_7a_35, 0x2e_a0_43)
+    ctx.fillStyle = css(0xff_ff_ff)
     ctx.beginPath()
     ctx.moveTo(9, 7)
     ctx.lineTo(9, 17)
@@ -144,38 +144,38 @@ const drawers: Record<string, Draw> = {
   },
 
   "ui-difficulty": (ctx) => {
-    glow(ctx, 0xffd54a)
+    glow(ctx, 0xff_d5_4a)
     const bars: [number, number, number][] = [
       [4, 15, 5],
       [10, 10, 10],
       [16, 4, 16],
     ]
     for (const [x, y, h] of bars) {
-      ctx.fillStyle = linear(ctx, 0, y, 0, y + h, 0xffe08a, 0xb8710f)
+      ctx.fillStyle = linear(ctx, 0, y, 0, y + h, 0xff_e0_8a, 0xb8_71_0f)
       roundRect(ctx, x, y, 4, h, 2)
       ctx.fill()
     }
   },
 
   "ui-scores": (ctx) => {
-    glow(ctx, 0xffd54a)
-    ctx.fillStyle = linear(ctx, 0, 0, 0, 14, 0xffe08a, 0xd99a1c)
+    glow(ctx, 0xff_d5_4a)
+    ctx.fillStyle = linear(ctx, 0, 0, 0, 14, 0xff_e0_8a, 0xd9_9a_1c)
     roundRect(ctx, 6, 3, 12, 9, 2)
     ctx.fill()
-    ctx.fillStyle = css(0xffb829)
+    ctx.fillStyle = css(0xff_b8_29)
     ctx.fillRect(3, 5, 3, 5)
     ctx.fillRect(18, 5, 3, 5)
-    ctx.fillStyle = css(0xb8710f)
+    ctx.fillStyle = css(0xb8_71_0f)
     ctx.fillRect(10, 12, 4, 5)
-    ctx.fillStyle = css(0xd99a1c)
+    ctx.fillStyle = css(0xd9_9a_1c)
     ctx.fillRect(6, 17, 12, 3)
   },
 
   "ui-options": (ctx) => {
-    glow(ctx, 0x9aa4bf)
+    glow(ctx, 0x9a_a4_bf)
     ctx.save()
     ctx.translate(12, 12)
-    ctx.fillStyle = linear(ctx, -10, -10, 10, 10, 0xd7deee, 0x6b7a99)
+    ctx.fillStyle = linear(ctx, -10, -10, 10, 10, 0xd7_de_ee, 0x6b_7a_99)
     for (let i = 0; i < 8; i++) {
       ctx.save()
       ctx.rotate((i * Math.PI) / 4)
@@ -187,15 +187,15 @@ const drawers: Record<string, Draw> = {
     ctx.arc(0, 0, 7, 0, Math.PI * 2)
     ctx.fill()
     ctx.restore()
-    ctx.fillStyle = css(0x0b0e1a)
+    ctx.fillStyle = css(0x0b_0e_1a)
     ctx.beginPath()
     ctx.arc(12, 12, 3, 0, Math.PI * 2)
     ctx.fill()
   },
 
   "ui-fullscreen": (ctx) => {
-    glow(ctx, 0x9fe0ff)
-    ctx.strokeStyle = linear(ctx, 0, 0, SIZE, SIZE, 0xd7f2ff, 0x4aa8e0)
+    glow(ctx, 0x9f_e0_ff)
+    ctx.strokeStyle = linear(ctx, 0, 0, SIZE, SIZE, 0xd7_f2_ff, 0x4a_a8_e0)
     ctx.lineWidth = 2.5
     ctx.lineCap = "round"
     const c = 3
@@ -219,8 +219,8 @@ const drawers: Record<string, Draw> = {
   },
 
   "ui-install": (ctx) => {
-    glow(ctx, 0x4da3ff)
-    ctx.fillStyle = linear(ctx, 0, 0, 0, SIZE, 0x9bc8ff, 0x1f6fcc)
+    glow(ctx, 0x4d_a3_ff)
+    ctx.fillStyle = linear(ctx, 0, 0, 0, SIZE, 0x9b_c8_ff, 0x1f_6f_cc)
     ctx.fillRect(10, 3, 4, 9)
     ctx.beginPath()
     ctx.moveTo(6, 10)
@@ -232,8 +232,8 @@ const drawers: Record<string, Draw> = {
   },
 
   "ui-share": (ctx) => {
-    glow(ctx, 0x7ee787)
-    ctx.strokeStyle = css(0x2ea043)
+    glow(ctx, 0x7e_e7_87)
+    ctx.strokeStyle = css(0x2e_a0_43)
     ctx.lineWidth = 2
     ctx.beginPath()
     ctx.moveTo(8, 11)
@@ -241,7 +241,7 @@ const drawers: Record<string, Draw> = {
     ctx.moveTo(8, 13)
     ctx.lineTo(16, 18)
     ctx.stroke()
-    ctx.fillStyle = linear(ctx, 0, 0, SIZE, SIZE, 0x9af0a3, 0x2ea043)
+    ctx.fillStyle = linear(ctx, 0, 0, SIZE, SIZE, 0x9a_f0_a3, 0x2e_a0_43)
     for (const [x, y] of [
       [6, 12],
       [18, 5],
@@ -254,11 +254,11 @@ const drawers: Record<string, Draw> = {
   },
 
   "ui-contact": (ctx) => {
-    glow(ctx, 0x1f6fcc)
-    ctx.fillStyle = linear(ctx, 0, 0, 0, SIZE, 0x4da3ff, 0x1f6fcc)
+    glow(ctx, 0x1f_6f_cc)
+    ctx.fillStyle = linear(ctx, 0, 0, 0, SIZE, 0x4d_a3_ff, 0x1f_6f_cc)
     roundRect(ctx, 2, 5, 20, 14, 2)
     ctx.fill()
-    ctx.strokeStyle = css(0xffffff, 0.85)
+    ctx.strokeStyle = css(0xff_ff_ff, 0.85)
     ctx.lineWidth = 1.5
     ctx.beginPath()
     ctx.moveTo(3, 6)
@@ -268,8 +268,8 @@ const drawers: Record<string, Draw> = {
   },
 
   "ui-home": (ctx) => {
-    glow(ctx, 0x7ee787)
-    ctx.fillStyle = linear(ctx, 0, 2, 0, SIZE, 0x9af0a3, 0x2ea043)
+    glow(ctx, 0x7e_e7_87)
+    ctx.fillStyle = linear(ctx, 0, 2, 0, SIZE, 0x9a_f0_a3, 0x2e_a0_43)
     // roof + walls in one path, door punched back out in the panel color
     ctx.beginPath()
     ctx.moveTo(12, 2)
@@ -281,14 +281,14 @@ const drawers: Record<string, Draw> = {
     ctx.lineTo(1, 12)
     ctx.closePath()
     ctx.fill()
-    ctx.fillStyle = css(0x0b0e1a)
+    ctx.fillStyle = css(0x0b_0e_1a)
     roundRect(ctx, 9.5, 15, 5, 7, 1)
     ctx.fill()
   },
 
   "ui-back": (ctx) => {
-    glow(ctx, 0x9aa4bf)
-    ctx.strokeStyle = linear(ctx, 0, 0, SIZE, SIZE, 0xd7deee, 0x6b7a99)
+    glow(ctx, 0x9a_a4_bf)
+    ctx.strokeStyle = linear(ctx, 0, 0, SIZE, SIZE, 0xd7_de_ee, 0x6b_7a_99)
     ctx.lineWidth = 3
     ctx.lineCap = "round"
     ctx.lineJoin = "round"
@@ -300,8 +300,8 @@ const drawers: Record<string, Draw> = {
   },
 
   "ui-music": (ctx) => {
-    glow(ctx, 0xc792ea)
-    ctx.fillStyle = linear(ctx, 0, 0, SIZE, SIZE, 0xe0b3ff, 0x8a4fd0)
+    glow(ctx, 0xc7_92_ea)
+    ctx.fillStyle = linear(ctx, 0, 0, SIZE, SIZE, 0xe0_b3_ff, 0x8a_4f_d0)
     ctx.fillRect(9, 5, 2, 12)
     ctx.fillRect(18, 3, 2, 12)
     ctx.fillRect(9, 4, 11, 3)
@@ -314,11 +314,11 @@ const drawers: Record<string, Draw> = {
   },
 
   "ui-exit": (ctx) => {
-    glow(ctx, 0xff5f6e)
-    ctx.strokeStyle = linear(ctx, 0, 0, 0, SIZE, 0xffb3ba, 0xc03340)
+    glow(ctx, 0xff_5f_6e)
+    ctx.strokeStyle = linear(ctx, 0, 0, 0, SIZE, 0xff_b3_ba, 0xc0_33_40)
     ctx.lineWidth = 2
     ctx.strokeRect(3, 3, 11, 18)
-    ctx.fillStyle = css(0xff8a95)
+    ctx.fillStyle = css(0xff_8a_95)
     ctx.fillRect(12, 11, 6, 2)
     ctx.beginPath()
     ctx.moveTo(17, 7)
@@ -329,20 +329,20 @@ const drawers: Record<string, Draw> = {
   },
 
   "ui-graphics": (ctx) => {
-    glow(ctx, 0x9aa4bf)
-    ctx.fillStyle = linear(ctx, 0, 0, 0, SIZE, 0xd7deee, 0x6b7a99)
+    glow(ctx, 0x9a_a4_bf)
+    ctx.fillStyle = linear(ctx, 0, 0, 0, SIZE, 0xd7_de_ee, 0x6b_7a_99)
     ctx.beginPath()
     ctx.ellipse(12, 12, 10, 8.5, 0, 0, Math.PI * 2)
     ctx.fill()
-    ctx.fillStyle = css(0x0b0e1a)
+    ctx.fillStyle = css(0x0b_0e_1a)
     ctx.beginPath()
     ctx.arc(16, 9, 2.2, 0, Math.PI * 2)
     ctx.fill()
     for (const [x, y, color] of [
-      [7, 8, 0xff5f6e],
-      [6, 14, 0xffd54a],
-      [12, 17, 0x4da3ff],
-      [17, 15, 0x7ee787],
+      [7, 8, 0xff_5f_6e],
+      [6, 14, 0xff_d5_4a],
+      [12, 17, 0x4d_a3_ff],
+      [17, 15, 0x7e_e7_87],
     ] as const) {
       ctx.fillStyle = css(color)
       ctx.beginPath()
@@ -352,8 +352,8 @@ const drawers: Record<string, Draw> = {
   },
 
   "ui-autofire": (ctx) => {
-    glow(ctx, 0xffb829)
-    ctx.strokeStyle = linear(ctx, 0, 0, 0, SIZE, 0xffe08a, 0xb8710f)
+    glow(ctx, 0xff_b8_29)
+    ctx.strokeStyle = linear(ctx, 0, 0, 0, SIZE, 0xff_e0_8a, 0xb8_71_0f)
     ctx.lineWidth = 2
     ctx.beginPath()
     ctx.arc(12, 12, 7, 0, Math.PI * 2)
@@ -368,7 +368,7 @@ const drawers: Record<string, Draw> = {
     ctx.moveTo(17, 12)
     ctx.lineTo(22, 12)
     ctx.stroke()
-    ctx.fillStyle = css(0xffb829)
+    ctx.fillStyle = css(0xff_b8_29)
     ctx.beginPath()
     ctx.arc(12, 12, 2.2, 0, Math.PI * 2)
     ctx.fill()
